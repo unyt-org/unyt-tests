@@ -32,6 +32,7 @@ export class TestResourceManager extends ResourceManger {
         UnytTests.onTestGroupResult((group_name:string, result:typeof UnytTests.SUCCESSFUL|any)=>{
             this.onResourceUpdated(this.getResourceForTest(group_name));
         })
+
     }
 
     addResource(resource: Resource, value: any): Promise<void> {
@@ -54,7 +55,7 @@ export class TestResourceManager extends ResourceManger {
 
         if (resource.path_array.length == 2) {
             return {
-                html: this.createTestContent(resource.path_array[1], UnytTests.getTestResult(resource.path_array[0],resource.path_array[1])),
+                html: this.createTestContent(resource.path_array[0], resource.path_array[1], UnytTests.getTestResult(resource.path_array[0],resource.path_array[1])),
                 type: 'test'
             }
         }
@@ -67,7 +68,9 @@ export class TestResourceManager extends ResourceManger {
         }
     }
     isDirectory(resource: Resource) {
-        return (resource.path_array.length < 2)
+        return resource.path_array.length == 0 ||
+            resource.path_array.length == 1 ||  
+            (resource.path_array.length == 2 && UnytTests.getTestCases(resource.path_array[0], resource.path_array[1]) != UnytTests.NO_PARAMS)
     }
     setResourceValue(resource: Resource, value: any): Promise<void> {
         throw new Error("Method not implemented.");
@@ -93,9 +96,9 @@ export class TestResourceManager extends ResourceManger {
             let children = [];
             for (let name of UnytTests.getTests(resource.path_array[0])?.keys()??[]) {
                 children.push([
-                    resource.default_path+'/'+name+'/', 
+                    resource.default_path+'/'+name+(UnytTests.getTestCases(resource.path_array[0],name) == UnytTests.NO_PARAMS ? '' : '/'), 
                     {
-                        html: this.createTestContent(name, UnytTests.getTestResult(resource.path_array[0],name)),
+                        html: this.createTestContent(resource.path_array[0], name, UnytTests.getTestResult(resource.path_array[0],name)),
                         type: 'test'
                     }
                 ])
@@ -105,9 +108,12 @@ export class TestResourceManager extends ResourceManger {
 
         // test
         if (resource.path_array.length == 2) {
+            const test_cases = UnytTests.getTestCases(resource.path_array[0], resource.path_array[1]);
+            if (test_cases == UnytTests.NO_PARAMS) return null; // no test case children
+
             let children = [];
             let i = 0;
-            for (let params of UnytTests.getTestCases(resource.path_array[0], resource.path_array[1])??[]) {
+            for (let params of test_cases??[]) {
                 children.push([
                     resource.default_path+'/'+i, 
                     {
@@ -132,24 +138,30 @@ export class TestResourceManager extends ResourceManger {
     }
 
 
-    protected createTestGroupContent(name:string, result:any = UnytTests.UNKNOWN){
+    protected createTestGroupContent(name:string, result:any = UnytTests.PENDING){
+        name = UIX.Utils.escapeHtml(name);
         if (result==UnytTests.SUCCESSFUL)   return `<span style='color:var(--green)'>${UIX.I('fa-check-circle')} ${name}</span>`
-        else if (result==UnytTests.UNKNOWN) return `<span style='color:var(--yellow)'>${UIX.I('fa-circle')} ${name}</span>`
+        else if (result==UnytTests.PENDING) return `<span style='color:var(--yellow)'>${UIX.I('fa-circle')} ${name}</span>`
         else return `<span style='color:var(--red)'>${UIX.I('fa-times-circle')} ${name}</span>`
     }
 
-    protected createTestContent(name:string, result:any = UnytTests.UNKNOWN){
+    protected createTestContent(group_name:string, name:string, result:any = UnytTests.PENDING){
+        const has_no_test_cases =  UnytTests.getTestCases(group_name, name) == UnytTests.NO_PARAMS;
+        name = UIX.Utils.escapeHtml(name);
         if (result==UnytTests.SUCCESSFUL)   return `<span style='color:var(--green)'>${UIX.I('fa-check-circle')} ${name}</span>`
-        else if (result==UnytTests.UNKNOWN) return `<span style='color:var(--yellow)'>${UIX.I('fa-circle')} ${name}</span>`
-        else return `<span style='color:var(--red)'>${UIX.I('fa-times-circle')} ${name}</span>`
+        else if (result==UnytTests.PENDING) return `<span style='color:var(--yellow)'>${UIX.I('fa-circle')} ${name}</span>`
+        else return `<span style='color:var(--red)'>${UIX.I('fa-times-circle')}
+                ${name}
+                ${has_no_test_cases? `<span style='color:#d26476'>${UIX.Utils.escapeHtml(result instanceof Error ? (result.name + ": " + result.message) : result)}</span>` : ''}
+            </span>`
     }
 
-    protected async createTestCaseContent(params:any[], result:any = UnytTests.UNKNOWN){
+    protected async createTestCaseContent(params:any[], result:any = UnytTests.PENDING){
         let params_string:string
         if (params instanceof Array) {
             params_string = '<span style="color:var(--text_color)">';
-            for (let p of params) params_string += DatexRuntime.valueToDatexString(p, false) + ", ";//(await MonacoHandler.colorize(DatexRuntime.valueToDatexString(p, false), 'javascript')).replace(/\<br\/\>$/g, "") + ", ";
-            params_string = params_string.slice(0,-2); // remove last comma
+            for (let p of params) params_string += UIX.Utils.escapeHtml(DatexRuntime.valueToDatexString(p, false)) + ", ";//(await MonacoHandler.colorize(DatexRuntime.valueToDatexString(p, false), 'javascript')).replace(/\<br\/\>$/g, "") + ", ";
+            if (params.length) params_string = params_string.slice(0,-2); // remove last comma
             params_string += '</span>'
         }
         else params_string = "?";
@@ -157,11 +169,15 @@ export class TestResourceManager extends ResourceManger {
         if (result==UnytTests.SUCCESSFUL) {
             return `<span style='color:var(--green)'>${UIX.I('fa-check-circle')} ${params_string}</span>`
         }
-        else if (result==UnytTests.UNKNOWN) {
+        else if (result==UnytTests.PENDING) {
             return `<span style='color:var(--yellow)'>${UIX.I('fa-circle')} ${params_string}</span>`
         }
         else {
-            return `<span style='color:var(--red)'>${UIX.I('fa-times-circle')} ${params_string} <span style='color:#d26476'>${result}</span></span>`
+            return `<span style='color:var(--red)'>
+                    ${UIX.I('fa-times-circle')}
+                    ${params_string}
+                    <span style='color:#d26476'>${UIX.Utils.escapeHtml(result instanceof Error ? (result.name + ": " + result.message) : result)}</span>
+                </span>`
         }
     }
 
@@ -194,14 +210,29 @@ export class TestResultView<O extends UIX.Options.TREE_OPTIONS = UIX.Options.TRE
     
     override FILTER_SHOW_INVALID_CHILDREN = true;
     override FILTER_SHOW_INVALID_SIBLINGS = false;
+
+    override CONTEXT_MENU_HEADER_LEFT = true;
     
+
+    protected override onInit() {
+        this.updateBorderColor(UnytTests.getTestResult());
+        UnytTests.onAllTestsResult((result:typeof UnytTests.SUCCESSFUL|any)=>this.updateBorderColor(result))
+    }
+
+    // updates the border color to red, yellow or green according to current test result
+    protected updateBorderColor(result:any) {
+        if (result == UnytTests.SUCCESSFUL) this.border_color = 'UIX.Theme.green'
+        else if (result == UnytTests.PENDING) this.border_color = 'UIX.Theme.yellow'
+        else this.border_color = 'UIX.Theme.red'
+    }
+
     public override async onAnchor() {
         await MonacoHandler.init(); // load monaco first
         this.addStyleSheet(MonacoHandler.standalone_stylesheet);
         await super.onAnchor();
     }
 
-    protected override createContextMenuBody(resource: Resource) {
+    protected override createContextMenuBody(resource: Resource):UIX.Types.context_menu {
         return {
             reload: {
                 text: UIX.S`rerun`,
