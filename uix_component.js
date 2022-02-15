@@ -13,10 +13,10 @@ UIX.registerEntryType("test", "#ddd", "");
 UIX.registerEntryType("test_case", "#ddd", "");
 UIX.Res.addStrings({
     en: {
-        rerun: "Run again"
+        run_test: "Run test"
     },
     de: {
-        rerun: "Erneut ausführen"
+        run_test: "Test ausführen"
     }
 });
 export class TestResourceManager extends ResourceManger {
@@ -42,27 +42,27 @@ export class TestResourceManager extends ResourceManger {
     async getMetaData(resource) {
         if (resource.path_array.length == 1) {
             return {
-                html: this.createTestGroupContent(resource.path_array[0], UnytTests.getTestResult(resource.path_array[0])),
+                html: this.createTestGroupContent(resource.path_array[0], await UnytTests.getTestResult(resource.path_array[0])),
                 type: 'test_group'
             };
         }
         if (resource.path_array.length == 2) {
             return {
-                html: this.createTestContent(resource.path_array[0], resource.path_array[1], UnytTests.getTestResult(resource.path_array[0], resource.path_array[1])),
+                html: this.createTestContent(resource.path_array[0], resource.path_array[1], await UnytTests.getTestResult(resource.path_array[0], resource.path_array[1])),
                 type: 'test'
             };
         }
         if (resource.path_array.length == 3) {
             return {
-                html: await this.createTestCaseContent(resource.meta.reference, UnytTests.getTestResult(resource.path_array[0], resource.path_array[1], parseInt(resource.path_array[2]))),
+                html: await this.createTestCaseContent(resource.meta.reference, await UnytTests.getTestResult(resource.path_array[0], resource.path_array[1], parseInt(resource.path_array[2]))),
                 type: 'test_case'
             };
         }
     }
-    isDirectory(resource) {
+    async isDirectory(resource) {
         return resource.path_array.length == 0 ||
             resource.path_array.length == 1 ||
-            (resource.path_array.length == 2 && UnytTests.getTestCases(resource.path_array[0], resource.path_array[1]) != UnytTests.NO_PARAMS);
+            (resource.path_array.length == 2 && ((await UnytTests.getTestCases(resource.path_array[0], resource.path_array[1])) != UnytTests.NO_PARAMS));
     }
     setResourceValue(resource, value) {
         throw new Error("Method not implemented.");
@@ -70,11 +70,11 @@ export class TestResourceManager extends ResourceManger {
     async getChildren(resource, update_meta) {
         if (resource.path_array.length == 0) {
             let children = [];
-            for (let name of UnytTests.getTestsGroups().keys()) {
+            for (let name of (await UnytTests.getTestsGroups()).keys()) {
                 children.push([
                     name + '/',
                     {
-                        html: this.createTestGroupContent(name, UnytTests.getTestResult(name)),
+                        html: this.createTestGroupContent(name, await UnytTests.getTestResult(name)),
                         type: 'test_group'
                     }
                 ]);
@@ -83,11 +83,11 @@ export class TestResourceManager extends ResourceManger {
         }
         if (resource.path_array.length == 1) {
             let children = [];
-            for (let name of UnytTests.getTests(resource.path_array[0])?.keys() ?? []) {
+            for (let name of (await UnytTests.getTests(resource.path_array[0]))?.keys() ?? []) {
                 children.push([
-                    resource.default_path + '/' + name + (UnytTests.getTestCases(resource.path_array[0], name) == UnytTests.NO_PARAMS ? '' : '/'),
+                    resource.default_path + '/' + name + ((await UnytTests.getTestCases(resource.path_array[0], name)) == UnytTests.NO_PARAMS ? '' : '/'),
                     {
-                        html: this.createTestContent(resource.path_array[0], name, UnytTests.getTestResult(resource.path_array[0], name)),
+                        html: this.createTestContent(resource.path_array[0], name, await UnytTests.getTestResult(resource.path_array[0], name)),
                         type: 'test'
                     }
                 ]);
@@ -95,7 +95,7 @@ export class TestResourceManager extends ResourceManger {
             return children;
         }
         if (resource.path_array.length == 2) {
-            const test_cases = UnytTests.getTestCases(resource.path_array[0], resource.path_array[1]);
+            const test_cases = await UnytTests.getTestCases(resource.path_array[0], resource.path_array[1]);
             if (test_cases == UnytTests.NO_PARAMS)
                 return null;
             let children = [];
@@ -104,7 +104,7 @@ export class TestResourceManager extends ResourceManger {
                 children.push([
                     resource.default_path + '/' + i,
                     {
-                        html: await this.createTestCaseContent(params, UnytTests.getTestResult(resource.path_array[0], resource.path_array[1], i)),
+                        html: await this.createTestCaseContent(params, await UnytTests.getTestResult(resource.path_array[0], resource.path_array[1], i)),
                         type: 'test_case',
                         reference: params
                     }
@@ -202,9 +202,9 @@ let TestResultView = class TestResultView extends TreeView {
             value: true
         });
     }
-    onInit() {
-        this.updateBorderColor(UnytTests.getTestResult());
-        UnytTests.onAllTestsResult((result) => this.updateBorderColor(result));
+    async onInit() {
+        this.updateBorderColor(await UnytTests.getTestResult());
+        await UnytTests.onAllTestsResult((result) => this.updateBorderColor(result));
     }
     updateBorderColor(result) {
         if (result == UnytTests.SUCCESSFUL)
@@ -222,10 +222,18 @@ let TestResultView = class TestResultView extends TreeView {
     createContextMenuBody(resource) {
         return {
             reload: {
-                text: UIX.S `rerun`,
-                icon: UIX.I `fa-sync-alt`,
+                text: UIX.S `run_test`,
+                icon: UIX.I `fa-play`,
                 handler: () => {
-                    UIX.Actions.transitionToURL(location.href);
+                    console.log("run " + resource, resource.path_array.length);
+                    if (resource.path_array.length == 1) {
+                        UnytTests.runTests(resource.path_array[0]);
+                    }
+                    else if (resource.path_array.length == 2) {
+                        UnytTests.runTest(resource.path_array[0], resource.path_array[1]);
+                    }
+                    else if (resource.path_array.length == 3) {
+                    }
                 }
             }
         };
@@ -241,6 +249,7 @@ TestResultView = __decorate([
         enable_entry_drop: false,
         enable_entry_open: false,
         margin: 10,
+        border: 2,
         root_resource_path: "tests://"
     })
 ], TestResultView);

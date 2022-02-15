@@ -9,10 +9,10 @@ UIX.registerEntryType("test_case", "#ddd", "");
 
 UIX.Res.addStrings({
     en: {
-        rerun: "Run again"
+        run_test: "Run test"
     },
     de: {
-        rerun: "Erneut ausführen"
+        run_test: "Test ausführen"
     }
 })
 
@@ -48,29 +48,29 @@ export class TestResourceManager extends ResourceManger {
     async getMetaData(resource: Resource) {
         if (resource.path_array.length == 1) {
             return {
-                html: this.createTestGroupContent(resource.path_array[0], UnytTests.getTestResult(resource.path_array[0])),
+                html: this.createTestGroupContent(resource.path_array[0], await UnytTests.getTestResult(resource.path_array[0])),
                 type: 'test_group'
             }
         }
 
         if (resource.path_array.length == 2) {
             return {
-                html: this.createTestContent(resource.path_array[0], resource.path_array[1], UnytTests.getTestResult(resource.path_array[0],resource.path_array[1])),
+                html: this.createTestContent(resource.path_array[0], resource.path_array[1], await UnytTests.getTestResult(resource.path_array[0],resource.path_array[1])),
                 type: 'test'
             }
         }
 
         if (resource.path_array.length == 3) {
             return {
-                html: await this.createTestCaseContent(resource.meta.reference, UnytTests.getTestResult(resource.path_array[0],resource.path_array[1],parseInt(resource.path_array[2]))),
+                html: await this.createTestCaseContent(resource.meta.reference, await UnytTests.getTestResult(resource.path_array[0],resource.path_array[1],parseInt(resource.path_array[2]))),
                 type: 'test_case'
             }
         }
     }
-    isDirectory(resource: Resource) {
+    async isDirectory(resource: Resource) {
         return resource.path_array.length == 0 ||
             resource.path_array.length == 1 ||  
-            (resource.path_array.length == 2 && UnytTests.getTestCases(resource.path_array[0], resource.path_array[1]) != UnytTests.NO_PARAMS)
+            (resource.path_array.length == 2 && ((await UnytTests.getTestCases(resource.path_array[0], resource.path_array[1])) != UnytTests.NO_PARAMS))
     }
     setResourceValue(resource: Resource, value: any): Promise<void> {
         throw new Error("Method not implemented.");
@@ -79,11 +79,11 @@ export class TestResourceManager extends ResourceManger {
         // root, get test groups
         if (resource.path_array.length == 0) {
             let children = [];
-            for (let name of UnytTests.getTestsGroups().keys()) {
+            for (let name of (await UnytTests.getTestsGroups()).keys()) {
                 children.push([
                     name+'/', 
                     {
-                        html:this.createTestGroupContent(name, UnytTests.getTestResult(name)),
+                        html:this.createTestGroupContent(name, await UnytTests.getTestResult(name)),
                         type: 'test_group'
                     }
                 ])
@@ -94,11 +94,11 @@ export class TestResourceManager extends ResourceManger {
         // test group
         if (resource.path_array.length == 1) {
             let children = [];
-            for (let name of UnytTests.getTests(resource.path_array[0])?.keys()??[]) {
+            for (let name of (await UnytTests.getTests(resource.path_array[0]))?.keys()??[]) {
                 children.push([
-                    resource.default_path+'/'+name+(UnytTests.getTestCases(resource.path_array[0],name) == UnytTests.NO_PARAMS ? '' : '/'), 
+                    resource.default_path+'/'+name+((await UnytTests.getTestCases(resource.path_array[0],name)) == UnytTests.NO_PARAMS ? '' : '/'), 
                     {
-                        html: this.createTestContent(resource.path_array[0], name, UnytTests.getTestResult(resource.path_array[0],name)),
+                        html: this.createTestContent(resource.path_array[0], name, await UnytTests.getTestResult(resource.path_array[0],name)),
                         type: 'test'
                     }
                 ])
@@ -108,7 +108,7 @@ export class TestResourceManager extends ResourceManger {
 
         // test
         if (resource.path_array.length == 2) {
-            const test_cases = UnytTests.getTestCases(resource.path_array[0], resource.path_array[1]);
+            const test_cases = await UnytTests.getTestCases(resource.path_array[0], resource.path_array[1]);
             if (test_cases == UnytTests.NO_PARAMS) return null; // no test case children
 
             let children = [];
@@ -117,7 +117,7 @@ export class TestResourceManager extends ResourceManger {
                 children.push([
                     resource.default_path+'/'+i, 
                     {
-                        html: await this.createTestCaseContent(params, UnytTests.getTestResult(resource.path_array[0],resource.path_array[1],i)),
+                        html: await this.createTestCaseContent(params, await UnytTests.getTestResult(resource.path_array[0],resource.path_array[1],i)),
                         type: 'test_case',
                         reference: params
                     }
@@ -146,7 +146,7 @@ export class TestResourceManager extends ResourceManger {
     }
 
     protected createTestContent(group_name:string, name:string, result:any = UnytTests.PENDING){
-        const has_no_test_cases =  UnytTests.getTestCases(group_name, name) == UnytTests.NO_PARAMS;
+        const has_no_test_cases = UnytTests.getTestCases(group_name, name) == UnytTests.NO_PARAMS;
         name = UIX.Utils.escapeHtml(name);
         if (result==UnytTests.SUCCESSFUL)   return `<span style='color:var(--green)'>${UIX.I('fa-check-circle')} ${name}</span>`
         else if (result==UnytTests.PENDING) return `<span style='color:var(--yellow)'>${UIX.I('fa-circle')} ${name}</span>`
@@ -204,6 +204,7 @@ export class TestResourceManager extends ResourceManger {
     enable_entry_drop: false, // don't drop other items into the tree
     enable_entry_open: false, // don't open new view on click
     margin: 10,
+    border: 2,
     root_resource_path:"tests://"
 })
 export class TestResultView<O extends UIX.Options.TREE_OPTIONS = UIX.Options.TREE_OPTIONS> extends TreeView<O> {
@@ -214,9 +215,9 @@ export class TestResultView<O extends UIX.Options.TREE_OPTIONS = UIX.Options.TRE
     override CONTEXT_MENU_HEADER_LEFT = true;
     
 
-    protected override onInit() {
-        this.updateBorderColor(UnytTests.getTestResult());
-        UnytTests.onAllTestsResult((result:typeof UnytTests.SUCCESSFUL|any)=>this.updateBorderColor(result))
+    protected override async onInit() {
+        this.updateBorderColor(await UnytTests.getTestResult());
+        await UnytTests.onAllTestsResult((result:typeof UnytTests.SUCCESSFUL|any)=>this.updateBorderColor(result))
     }
 
     // updates the border color to red, yellow or green according to current test result
@@ -235,10 +236,22 @@ export class TestResultView<O extends UIX.Options.TREE_OPTIONS = UIX.Options.TRE
     protected override createContextMenuBody(resource: Resource):UIX.Types.context_menu {
         return {
             reload: {
-                text: UIX.S`rerun`,
-                icon: UIX.I`fa-sync-alt`,
+                text: UIX.S`run_test`,
+                icon: UIX.I`fa-play`,
                 handler: ()=>{
-                    UIX.Actions.transitionToURL(location.href)
+                    console.log("run " + resource, resource.path_array.length);
+                    if (resource.path_array.length == 1) {
+                        UnytTests.runTests(resource.path_array[0])
+                    }
+
+                    else if (resource.path_array.length == 2) {
+                        UnytTests.runTest(resource.path_array[0], resource.path_array[1])
+                    }
+
+                    else if (resource.path_array.length == 3) {
+                        //UnytTests.runTestCase(resource.path_array[0], resource.path_array[1], parseInt(resource.path_array[2]))
+                    }
+                    //UIX.Actions.transitionToURL(location.href)
                 }
             }
         }
