@@ -240,7 +240,7 @@ let TestResultView = class TestResultView extends TreeView {
     }
 };
 TestResultView = __decorate([
-    UIX.Element({
+    UIX.Component({
         title: "Tests",
         header: true,
         search: true,

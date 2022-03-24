@@ -53,6 +53,11 @@ let UnytTests = UnytTests_1 = class UnytTests {
         UnytTests_1.to(DatexRuntime.endpoint);
         new TestResourceManager;
     }
+    static useLocal() {
+        logger.info("running local tests");
+        UnytTests_1.to(DatexRuntime.endpoint);
+        new TestResourceManager;
+    }
     static async remote(endpoint, url) {
         if (url) {
             this.url = url;
@@ -292,12 +297,6 @@ Object.defineProperty(UnytTests, "NO_PARAMS", {
     writable: true,
     value: "no_params"
 });
-Object.defineProperty(UnytTests, "all_tests_result", {
-    enumerable: true,
-    configurable: true,
-    writable: true,
-    value: UnytTests_1.PENDING
-});
 Object.defineProperty(UnytTests, "test_groups", {
     enumerable: true,
     configurable: true,
@@ -443,13 +442,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UnytTests, "onAllTestsResult", null);
 UnytTests = UnytTests_1 = __decorate([
-    default_scope
+    root_extension
 ], UnytTests);
 export { UnytTests };
+UnytTests.all_tests_result = UnytTests.PENDING;
 globalThis.UnytTests = UnytTests;
 import Assert from './unytassert/src/Assert.js';
 import { DatexRuntime, f } from "../unyt_web/unyt_core/datex_runtime.js";
-import { default_scope, expose, remote } from "../unyt_web/unyt_core/legacy_decorators.js";
+import { expose, remote, root_extension } from "../unyt_web/unyt_core/legacy_decorators.js";
 import { TestResourceManager } from "./uix_component.js";
 export class TestAssert extends Assert {
     constructor() {

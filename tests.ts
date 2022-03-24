@@ -56,13 +56,13 @@ type result_value = successful|pending|Error;
 
 type no_params = "no_params";
 
-@default_scope export class UnytTests {
+@root_extension export class UnytTests {
 
     static readonly SUCCESSFUL:successful = "successful"
     static readonly PENDING:pending = "pending"
     static readonly NO_PARAMS:no_params = "no_params"
 
-    static all_tests_result:typeof UnytTests.SUCCESSFUL|typeof UnytTests.PENDING|any = UnytTests.PENDING;
+    static all_tests_result:typeof UnytTests.SUCCESSFUL|typeof UnytTests.PENDING|any;
 
     static test_groups = new Map<string, object>(); // contains the actual test classes
     static tests = new Map<string, (Map<string, any[][]|no_params>)>() // contains test functions with different parameters for each test class/group
@@ -89,6 +89,15 @@ type no_params = "no_params";
     static async local() {
         logger.info("running local tests");
         await DatexCloud.connectAnonymous();
+        // @ts-ignore
+        UnytTests.to(DatexRuntime.endpoint);
+        // initalize tests:// resource manager with listeners
+        new TestResourceManager
+    }
+
+    // use existing DatexRuntime / cloud connection, run local test
+    static useLocal() {
+        logger.info("running local tests");
         // @ts-ignore
         UnytTests.to(DatexRuntime.endpoint);
         // initalize tests:// resource manager with listeners
@@ -349,15 +358,15 @@ type no_params = "no_params";
     }
 
 }
+UnytTests.all_tests_result = UnytTests.PENDING;
 
 globalThis.UnytTests = UnytTests;
 
 
-
 // Assert extensions
 import Assert from './unytassert/src/Assert.js';
-import { DatexEndpoint, DatexRuntime, endpoint_name, f, filter_target_name_alias } from "../unyt_web/unyt_core/datex_runtime.js";
-import { default_scope, expose, remote } from "../unyt_web/unyt_core/legacy_decorators.js";
+import {  DatexRuntime, endpoint_name, f } from "../unyt_web/unyt_core/datex_runtime.js";
+import { expose, remote, root_extension } from "../unyt_web/unyt_core/legacy_decorators.js";
 import { TestResourceManager } from "./uix_component.js";
 
 export class TestAssert extends Assert {

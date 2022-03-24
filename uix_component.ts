@@ -195,7 +195,7 @@ export class TestResourceManager extends ResourceManger {
 }
 
 
-@UIX.Element({
+@UIX.Component({
     title:"Tests", 
     header:true, 
     search:true,
