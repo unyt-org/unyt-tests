@@ -4,9 +4,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import UIX, { Resource, ResourceManger, TreeView } from "../unyt_web/uix/uix.js";
+import UIX, { Resource, ResourceManger } from "../unyt_web/uix/uix.js";
 import MonacoHandler from "../unyt_web/uix/uix_std/code_editor/monaco.js";
-import { DatexRuntime } from "../unyt_web/unyt_core/datex_runtime.js";
+import { Datex } from "../unyt_web/unyt_core/datex_runtime.js";
 import { UnytTests } from "./tests.js";
 UIX.registerEntryType("test_group", "#eee", "");
 UIX.registerEntryType("test", "#ddd", "");
@@ -149,7 +149,7 @@ export class TestResourceManager extends ResourceManger {
         if (params instanceof Array) {
             params_string = '<span style="color:var(--text_color)">';
             for (let p of params)
-                params_string += UIX.Utils.escapeHtml(DatexRuntime.valueToDatexString(p, false)) + ", ";
+                params_string += UIX.Utils.escapeHtml(Datex.Runtime.valueToDatexString(p, false)) + ", ";
             if (params.length)
                 params_string = params_string.slice(0, -2);
             params_string += '</span>';
@@ -180,7 +180,7 @@ export class TestResourceManager extends ResourceManger {
         throw new Error("Method not implemented.");
     }
 }
-let TestResultView = class TestResultView extends TreeView {
+let TestResultView = class TestResultView extends UIX.Components.Tree {
     constructor() {
         super(...arguments);
         Object.defineProperty(this, "FILTER_SHOW_INVALID_CHILDREN", {

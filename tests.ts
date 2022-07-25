@@ -79,7 +79,7 @@ type no_params = "no_params";
 
 
     // connect to DATEX cloud and expose tests from this endpoint
-    static async expose(endpoint:endpoint_name) {
+    static async expose(endpoint:Datex.endpoint_name) {
         logger.info("exposing tests as " + endpoint);
         await DatexCloud.connectTemporary(f(endpoint));
         // @ts-ignore
@@ -90,7 +90,7 @@ type no_params = "no_params";
         logger.info("running local tests");
         await DatexCloud.connectAnonymous();
         // @ts-ignore
-        UnytTests.to(DatexRuntime.endpoint);
+        UnytTests.to(Datex.Runtime.endpoint);
         // initalize tests:// resource manager with listeners
         new TestResourceManager
     }
@@ -99,7 +99,7 @@ type no_params = "no_params";
     static useLocal() {
         logger.info("running local tests");
         // @ts-ignore
-        UnytTests.to(DatexRuntime.endpoint);
+        UnytTests.to(Datex.Runtime.endpoint);
         // initalize tests:// resource manager with listeners
         new TestResourceManager
     }
@@ -109,7 +109,7 @@ type no_params = "no_params";
 
 
     // connect to DATEX cloud and get tests from this endpoint
-    static async remote(endpoint:endpoint_name, url?:string) {
+    static async remote(endpoint:Datex.endpoint_name, url?:string) {
         if (url) {
             this.url = url;
             await this.updateIframe();
@@ -365,7 +365,7 @@ globalThis.UnytTests = UnytTests;
 
 // Assert extensions
 import Assert from './unytassert/src/Assert.js';
-import {  DatexRuntime, endpoint_name, f } from "../unyt_web/unyt_core/datex_runtime.js";
+import { Datex, f } from "../unyt_web/unyt_core/datex_runtime.js";
 import { expose, remote, root_extension } from "../unyt_web/unyt_core/legacy_decorators.js";
 import { TestResourceManager } from "./uix_component.js";
 
@@ -373,12 +373,12 @@ export class TestAssert extends Assert {
     protected _NAME = "TestAssert";
 
     static equals(value1:any, value2:any) {
-        let error = new Error(`${DatexRuntime.valueToDatexString(value1)} does not equal ${DatexRuntime.valueToDatexString(value2)}`) 
+        let error = new Error(`${Datex.Runtime.valueToDatexString(value1)} does not equal ${Datex.Runtime.valueToDatexString(value2)}`) 
         return this.check(value1===value2, error);
     }
 
     static true(value:any) {
-        let error = new Error(`${DatexRuntime.valueToDatexString(value)} is not true`) 
+        let error = new Error(`${Datex.Runtime.valueToDatexString(value)} is not true`) 
         return this.check(value, error);
     }
 

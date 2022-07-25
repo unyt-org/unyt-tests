@@ -50,12 +50,12 @@ let UnytTests = UnytTests_1 = class UnytTests {
     static async local() {
         logger.info("running local tests");
         await DatexCloud.connectAnonymous();
-        UnytTests_1.to(DatexRuntime.endpoint);
+        UnytTests_1.to(Datex.Runtime.endpoint);
         new TestResourceManager;
     }
     static useLocal() {
         logger.info("running local tests");
-        UnytTests_1.to(DatexRuntime.endpoint);
+        UnytTests_1.to(Datex.Runtime.endpoint);
         new TestResourceManager;
     }
     static async remote(endpoint, url) {
@@ -448,7 +448,7 @@ export { UnytTests };
 UnytTests.all_tests_result = UnytTests.PENDING;
 globalThis.UnytTests = UnytTests;
 import Assert from './unytassert/src/Assert.js';
-import { DatexRuntime, f } from "../unyt_web/unyt_core/datex_runtime.js";
+import { Datex, f } from "../unyt_web/unyt_core/datex_runtime.js";
 import { expose, remote, root_extension } from "../unyt_web/unyt_core/legacy_decorators.js";
 import { TestResourceManager } from "./uix_component.js";
 export class TestAssert extends Assert {
@@ -462,11 +462,11 @@ export class TestAssert extends Assert {
         });
     }
     static equals(value1, value2) {
-        let error = new Error(`${DatexRuntime.valueToDatexString(value1)} does not equal ${DatexRuntime.valueToDatexString(value2)}`);
+        let error = new Error(`${Datex.Runtime.valueToDatexString(value1)} does not equal ${Datex.Runtime.valueToDatexString(value2)}`);
         return this.check(value1 === value2, error);
     }
     static true(value) {
-        let error = new Error(`${DatexRuntime.valueToDatexString(value)} is not true`);
+        let error = new Error(`${Datex.Runtime.valueToDatexString(value)} is not true`);
         return this.check(value, error);
     }
     static async throws(expression) {

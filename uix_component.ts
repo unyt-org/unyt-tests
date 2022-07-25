@@ -1,6 +1,6 @@
-import UIX, { Resource, ResourceManger, resource_meta, TreeView } from "../unyt_web/uix/uix.js";
+import UIX, { Resource, ResourceManger} from "../unyt_web/uix/uix.js";
 import MonacoHandler from "../unyt_web/uix/uix_std/code_editor/monaco.js";
-import { DatexRuntime } from "../unyt_web/unyt_core/datex_runtime.js";
+import { Datex } from "../unyt_web/unyt_core/datex_runtime.js";
 import { UnytTests } from "./tests.js";
 
 UIX.registerEntryType("test_group", "#eee", "");
@@ -160,7 +160,7 @@ export class TestResourceManager extends ResourceManger {
         let params_string:string
         if (params instanceof Array) {
             params_string = '<span style="color:var(--text_color)">';
-            for (let p of params) params_string += UIX.Utils.escapeHtml(DatexRuntime.valueToDatexString(p, false)) + ", ";//(await MonacoHandler.colorize(DatexRuntime.valueToDatexString(p, false), 'javascript')).replace(/\<br\/\>$/g, "") + ", ";
+            for (let p of params) params_string += UIX.Utils.escapeHtml(Datex.Runtime.valueToDatexString(p, false)) + ", ";//(await MonacoHandler.colorize(DatexRuntime.valueToDatexString(p, false), 'javascript')).replace(/\<br\/\>$/g, "") + ", ";
             if (params.length) params_string = params_string.slice(0,-2); // remove last comma
             params_string += '</span>'
         }
@@ -207,7 +207,7 @@ export class TestResourceManager extends ResourceManger {
     border: 2,
     root_resource_path:"tests://"
 })
-export class TestResultView<O extends UIX.Options.TREE_OPTIONS = UIX.Options.TREE_OPTIONS> extends TreeView<O> {
+export class TestResultView<O extends UIX.Components.Tree.Options = UIX.Components.Tree.Options> extends UIX.Components.Tree<O> {
     
     override FILTER_SHOW_INVALID_CHILDREN = true;
     override FILTER_SHOW_INVALID_SIBLINGS = false;
