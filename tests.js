@@ -22,7 +22,7 @@ function _Test(value, name, kind, is_static, is_private, setMetadata, getMetadat
     UnytTests.init();
     if (kind == 'class') {
         if (!(typeof params[0] == "string"))
-            throw Error("Invalid @Test name, must be a string");
+            params[0] = name;
         const group_name = params[0] ?? name;
         UnytTests.addTestGroup(group_name, value);
         for (let k of Object.getOwnPropertyNames(value)) {

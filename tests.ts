@@ -35,7 +35,8 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
     UnytTests.init();
 
     if (kind == 'class') {
-        if (!(typeof params[0] == "string")) throw Error("Invalid @Test name, must be a string")
+        // use class name as default test group name
+        if (!(typeof params[0] == "string")) params[0] = <string>name;
         
         const group_name = params[0]??<string>name;
         UnytTests.addTestGroup(group_name, value);
