@@ -16,6 +16,13 @@ const logger = new Logger("unyt_tests");
 
 const META_PARAMS = Symbol("params");
 
+let TestResourceManager:any;
+
+export function setTestResourceManager(manager:any) {
+    TestResourceManager = manager;
+}
+
+
 // @Test (legacy decorators support)
 export function Test(name:string)
 export function Test(...test_paramters:any[][])
@@ -95,7 +102,7 @@ type no_params = "no_params";
         // @ts-ignore
         UnytTests.to(Datex.Runtime.endpoint);
         // initalize tests:// resource manager with listeners
-        new TestResourceManager
+        if (TestResourceManager) new TestResourceManager
     }
 
     // use existing DatexRuntime / cloud connection, run local test
@@ -104,7 +111,7 @@ type no_params = "no_params";
         // @ts-ignore
         UnytTests.to(Datex.Runtime.endpoint);
         // initalize tests:// resource manager with listeners
-        new TestResourceManager
+        if (TestResourceManager) new TestResourceManager
     }
 
     private static iframe:HTMLIFrameElement
@@ -124,7 +131,7 @@ type no_params = "no_params";
         UnytTests.to(f(endpoint));
 
         // initalize tests:// resource manager with listeners
-        new TestResourceManager
+        if (TestResourceManager) new TestResourceManager
     }
 
 
@@ -369,7 +376,6 @@ globalThis.UnytTests = UnytTests;
 // Assert extensions
 import { Datex, f } from "../unyt_core/datex_runtime.js";
 import { expose, remote, root_extension } from "../unyt_core/legacy_decorators.js";
-import { TestResourceManager } from "./uix_component.js";
 
 
 export class TestAssert {

@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import UIX, { Resource, ResourceManger } from "../uix/uix.js";
 import MonacoHandler from "../uix/uix_std/code_editor/monaco.js";
 import { Datex } from "../unyt_core/datex_runtime.js";
-import { UnytTests } from "./tests.js";
+import { setTestResourceManager, UnytTests } from "./tests.js";
 UIX.registerEntryType("test_group", "#eee", "");
 UIX.registerEntryType("test", "#ddd", "");
 UIX.registerEntryType("test_case", "#ddd", "");
@@ -180,6 +180,7 @@ export class TestResourceManager extends ResourceManger {
         throw new Error("Method not implemented.");
     }
 }
+setTestResourceManager(TestResourceManager);
 let TestResultView = class TestResultView extends UIX.Components.Tree {
     constructor() {
         super(...arguments);
