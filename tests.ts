@@ -8,8 +8,8 @@
  *   not sure about the order in the decorator proposal (but static methods before class decorator would make sense)
  */
 
-import Logger from "../unyt_web/unyt_core/logger.js";
-import DatexCloud from "../unyt_web/unyt_core/datex_cloud.js";
+import Logger from "../unyt_core/logger.js";
+import DatexCloud from "../unyt_core/datex_cloud.js";
 import { handleDecoratorArgs, context_kind, context_meta_getter, context_meta_setter, context_name, METADATA } from "./legacy_decorators.js";
 
 const logger = new Logger("unyt_tests");
@@ -79,11 +79,14 @@ type no_params = "no_params";
 
 
     // connect to DATEX cloud and expose tests from this endpoint
-    static async expose(endpoint:Datex.endpoint_name) {
+    static async expose(endpoint?:Datex.endpoint_name) {
         logger.info("exposing tests as " + endpoint);
-        await DatexCloud.connectTemporary(f(endpoint));
+        if (endpoint) await DatexCloud.connectTemporary(f(endpoint));
+        await DatexCloud.connect();
+
         // @ts-ignore
-        UnytTests.to(f(endpoint));
+        UnytTests.to(Datex.Runtime.endpoint);
+        return Datex.Runtime.endpoint;
     }
 
     static async local() {
@@ -365,8 +368,8 @@ globalThis.UnytTests = UnytTests;
 
 // Assert extensions
 import Assert from './unytassert/src/Assert.js';
-import { Datex, f } from "../unyt_web/unyt_core/datex_runtime.js";
-import { expose, remote, root_extension } from "../unyt_web/unyt_core/legacy_decorators.js";
+import { Datex, f } from "../unyt_core/datex_runtime.js";
+import { expose, remote, root_extension } from "../unyt_core/legacy_decorators.js";
 import { TestResourceManager } from "./uix_component.js";
 
 export class TestAssert extends Assert {

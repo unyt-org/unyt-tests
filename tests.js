@@ -8,8 +8,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var UnytTests_1;
-import Logger from "../unyt_web/unyt_core/logger.js";
-import DatexCloud from "../unyt_web/unyt_core/datex_cloud.js";
+import Logger from "../unyt_core/logger.js";
+import DatexCloud from "../unyt_core/datex_cloud.js";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
 const logger = new Logger("unyt_tests");
 const META_PARAMS = Symbol("params");
@@ -44,8 +44,11 @@ let UnytTests = UnytTests_1 = class UnytTests {
     }
     static async expose(endpoint) {
         logger.info("exposing tests as " + endpoint);
-        await DatexCloud.connectTemporary(f(endpoint));
-        UnytTests_1.to(f(endpoint));
+        if (endpoint)
+            await DatexCloud.connectTemporary(f(endpoint));
+        await DatexCloud.connect();
+        UnytTests_1.to(Datex.Runtime.endpoint);
+        return Datex.Runtime.endpoint;
     }
     static async local() {
         logger.info("running local tests");
@@ -448,8 +451,8 @@ export { UnytTests };
 UnytTests.all_tests_result = UnytTests.PENDING;
 globalThis.UnytTests = UnytTests;
 import Assert from './unytassert/src/Assert.js';
-import { Datex, f } from "../unyt_web/unyt_core/datex_runtime.js";
-import { expose, remote, root_extension } from "../unyt_web/unyt_core/legacy_decorators.js";
+import { Datex, f } from "../unyt_core/datex_runtime.js";
+import { expose, remote, root_extension } from "../unyt_core/legacy_decorators.js";
 import { TestResourceManager } from "./uix_component.js";
 export class TestAssert extends Assert {
     constructor() {
