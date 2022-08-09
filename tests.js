@@ -13,6 +13,10 @@ import DatexCloud from "../unyt_core/datex_cloud.js";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
 const logger = new Logger("unyt_tests");
 const META_PARAMS = Symbol("params");
+let TestResourceManager;
+export function setTestResourceManager(manager) {
+    TestResourceManager = manager;
+}
 export function Test(...args) { return handleDecoratorArgs(args, _Test); }
 function _Test(value, name, kind, is_static, is_private, setMetadata, getMetadata, params = []) {
     UnytTests.init();
@@ -54,12 +58,14 @@ let UnytTests = UnytTests_1 = class UnytTests {
         logger.info("running local tests");
         await DatexCloud.connectAnonymous();
         UnytTests_1.to(Datex.Runtime.endpoint);
-        new TestResourceManager;
+        if (TestResourceManager)
+            new TestResourceManager;
     }
     static useLocal() {
         logger.info("running local tests");
         UnytTests_1.to(Datex.Runtime.endpoint);
-        new TestResourceManager;
+        if (TestResourceManager)
+            new TestResourceManager;
     }
     static async remote(endpoint, url) {
         if (url) {
@@ -69,7 +75,8 @@ let UnytTests = UnytTests_1 = class UnytTests {
         logger.info("getting remote tests from " + endpoint);
         await DatexCloud.connectAnonymous();
         UnytTests_1.to(f(endpoint));
-        new TestResourceManager;
+        if (TestResourceManager)
+            new TestResourceManager;
     }
     static async updateIframe() {
         if (this.iframe)
@@ -361,85 +368,73 @@ Object.defineProperty(UnytTests, "all_test_result_listeners", {
     value: new Set()
 });
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], UnytTests, "getTestsGroups", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Map)
 ], UnytTests, "getTests", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Object)
 ], UnytTests, "getTestCases", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, Number]),
     __metadata("design:returntype", void 0)
 ], UnytTests, "getTestResult", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], UnytTests, "runAllTests", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], UnytTests, "runTests", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], UnytTests, "runTest", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, Array, Number, Object]),
     __metadata("design:returntype", Promise)
 ], UnytTests, "runTestCase", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Function]),
     __metadata("design:returntype", void 0)
 ], UnytTests, "onTestCaseResult", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Function]),
     __metadata("design:returntype", void 0)
 ], UnytTests, "onTestResult", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Function]),
     __metadata("design:returntype", void 0)
 ], UnytTests, "onTestGroupResult", null);
 __decorate([
-    expose,
-    remote,
+    expose, remote,
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Function]),
     __metadata("design:returntype", void 0)
@@ -453,7 +448,6 @@ globalThis.UnytTests = UnytTests;
 import Assert from './unytassert/src/Assert.js';
 import { Datex, f } from "../unyt_core/datex_runtime.js";
 import { expose, remote, root_extension } from "../unyt_core/legacy_decorators.js";
-import { TestResourceManager } from "./uix_component.js";
 export class TestAssert extends Assert {
     constructor() {
         super(...arguments);

@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import UIX, { Resource, ResourceManger } from "../uix/uix.js";
 import MonacoHandler from "../uix/uix_std/code_editor/monaco.js";
 import { Datex } from "../unyt_core/datex_runtime.js";
-import { UnytTests } from "./tests.js";
+import { setTestResourceManager, UnytTests } from "./tests.js";
 UIX.registerEntryType("test_group", "#eee", "");
 UIX.registerEntryType("test", "#ddd", "");
 UIX.registerEntryType("test_case", "#ddd", "");
@@ -180,14 +180,27 @@ export class TestResourceManager extends ResourceManger {
         throw new Error("Method not implemented.");
     }
 }
+setTestResourceManager(TestResourceManager);
 let TestResultView = class TestResultView extends UIX.Components.Tree {
     constructor() {
         super(...arguments);
+        Object.defineProperty(this, "override", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
         Object.defineProperty(this, "FILTER_SHOW_INVALID_CHILDREN", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: true
+        });
+        Object.defineProperty(this, "override", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
         });
         Object.defineProperty(this, "FILTER_SHOW_INVALID_SIBLINGS", {
             enumerable: true,
@@ -195,11 +208,35 @@ let TestResultView = class TestResultView extends UIX.Components.Tree {
             writable: true,
             value: false
         });
+        Object.defineProperty(this, "override", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
         Object.defineProperty(this, "CONTEXT_MENU_HEADER_LEFT", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: true
+        });
+        Object.defineProperty(this, "override", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        Object.defineProperty(this, "override", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        Object.defineProperty(this, "override", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
         });
     }
     async onInit() {
