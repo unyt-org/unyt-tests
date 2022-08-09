@@ -367,13 +367,23 @@ globalThis.UnytTests = UnytTests;
 
 
 // Assert extensions
-import Assert from './unytassert/src/Assert.js';
 import { Datex, f } from "../unyt_core/datex_runtime.js";
 import { expose, remote, root_extension } from "../unyt_core/legacy_decorators.js";
 import { TestResourceManager } from "./uix_component.js";
 
-export class TestAssert extends Assert {
+
+export class TestAssert {
     protected _NAME = "TestAssert";
+
+    protected static check(result: boolean, error?: Error) {
+		if (result === false && error !== undefined)
+			throw error;
+		return result;
+	}
+
+	public get name(): string {
+		return this._NAME;
+	}
 
     static equals(value1:any, value2:any) {
         let error = new Error(`${Datex.Runtime.valueToDatexString(value1)} does not equal ${Datex.Runtime.valueToDatexString(value2)}`) 
