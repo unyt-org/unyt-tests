@@ -7,21 +7,30 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Datex, expose, scope } from "../unyt_core/datex.js";
-let Assert = class Assert {
+import { sync, property } from "../unyt_core/datex.js";
+let TestCase = class TestCase {
+    constructor() {
+        Object.defineProperty(this, "params", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: []
+        });
+    }
+    run() {
+    }
 };
-Object.defineProperty(Assert, "equals", {
-    enumerable: true,
-    configurable: true,
-    writable: true,
-    value: Datex.Assertion.get(null, function (value1, value2) {
-    })
-});
 __decorate([
-    expose,
-    __metadata("design:type", Object)
-], Assert, "equals", void 0);
-Assert = __decorate([
-    scope("asssert")
-], Assert);
-export { Assert };
+    property,
+    __metadata("design:type", Array)
+], TestCase.prototype, "params", void 0);
+__decorate([
+    property,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], TestCase.prototype, "run", null);
+TestCase = __decorate([
+    sync
+], TestCase);
+export { TestCase };

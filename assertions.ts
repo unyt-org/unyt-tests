@@ -1,11 +1,11 @@
-import { Datex } from "../unyt_core/datex.js";
+import { Datex, expose, scope } from "../unyt_core/datex.js";
 
 
-export class Assert {
+@scope("asssert") export class Assert {
 
-	// static isTrue = new Datex.Assertion(null, ()=>{
-
-	// }).assert
+	@expose static equals = Datex.Assertion.get(null, function (value1:any, value2:any){
+		
+	})
 
 
 }
