@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import UIX, { Resource, ResourceManger } from "../uix/uix.js";
 import MonacoHandler from "../uix/uix_std/code_editor/monaco.js";
 import { Datex } from "../unyt_core/datex_runtime.js";
-import { setTestResourceManager, UnytTests } from "./tests.js";
+import { setTestResourceManager, UnytTests } from "./test_manager.js";
 UIX.registerEntryType("test_group", "#eee", "");
 UIX.registerEntryType("test", "#ddd", "");
 UIX.registerEntryType("test_case", "#ddd", "");
@@ -182,27 +182,9 @@ export class TestResourceManager extends ResourceManger {
 }
 setTestResourceManager(TestResourceManager);
 let TestResultView = class TestResultView extends UIX.Components.Tree {
-    constructor() {
-        super(...arguments);
-        Object.defineProperty(this, "FILTER_SHOW_INVALID_CHILDREN", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: true
-        });
-        Object.defineProperty(this, "FILTER_SHOW_INVALID_SIBLINGS", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: false
-        });
-        Object.defineProperty(this, "CONTEXT_MENU_HEADER_LEFT", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: true
-        });
-    }
+    FILTER_SHOW_INVALID_CHILDREN = true;
+    FILTER_SHOW_INVALID_SIBLINGS = false;
+    CONTEXT_MENU_HEADER_LEFT = true;
     async onInit() {
         this.updateBorderColor(await UnytTests.getTestResult());
         await UnytTests.onAllTestsResult((result) => this.updateBorderColor(result));

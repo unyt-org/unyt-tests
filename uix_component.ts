@@ -1,7 +1,7 @@
 import UIX, { Resource, ResourceManger} from "../uix/uix.js";
 import MonacoHandler from "../uix/uix_std/code_editor/monaco.js";
 import { Datex } from "../unyt_core/datex_runtime.js";
-import { setTestResourceManager, UnytTests } from "./tests.js";
+import { setTestResourceManager, UnytTests } from "./test_manager.js";
 
 UIX.registerEntryType("test_group", "#eee", "");
 UIX.registerEntryType("test", "#ddd", "");

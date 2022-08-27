@@ -1,11 +1,18 @@
-import { UnytTests } from "./tests.js";
+import { NodeTestRunner } from "./runner/node_test_runner.js";
+import "./runner/test_manager.js";
+
 
 declare let process:any;
 
-// load test script
-const file_path = (process.argv[2]?.startsWith("/")?"":"../") + process.argv[2];
-await import(file_path);
+async function run(){
+	const path = process.argv[2];
+	const runner = new NodeTestRunner([path])
+	runner.runAll();
+	setTimeout(()=>{
+		runner.runAll();
+	}, 4000);
+}
 
-// run tests
-await UnytTests.local();
-await UnytTests.runAllTests();
+
+
+await run();

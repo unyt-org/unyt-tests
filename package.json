@@ -2,5 +2,8 @@
   "name": "unyt_tests",
   "author": "unyt",
   "version": "1.0.0",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "delete-node-require-cache": "^1.6.0"
+  }
 }

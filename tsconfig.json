@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
       "module": "esnext",
-      "target": "es2020",
+      "target": "es2022",
       "noImplicitOverride":true,
       "removeComments": true,
       "preserveConstEnums": true,
