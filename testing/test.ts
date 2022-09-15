@@ -9,12 +9,14 @@
  */
 // @ts-ignore
 import type { Class } from "../../unyt_core/datex.js";
+import { f } from "../../unyt_core/datex.js";
 import { Datex, remote, scope, to } from "../../unyt_core/datex.js";
+import { endpoint_name } from "../../unyt_core/datex_all.js";
 import { handleDecoratorArgs, context_kind, context_meta_getter, context_meta_setter, context_name, METADATA } from "./legacy_decorators.js";
 
 
-console.log("inside test")
-await Datex.Cloud.init();
+console.log("inside test, endpoint = " + process.env.endpoint)
+await Datex.Cloud.connectTemporary(f(<endpoint_name>process.env.endpoint));
 
 
 const TEST_CASE_DATA = Symbol("test_case");
@@ -39,7 +41,13 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
 
         for (let k of Object.getOwnPropertyNames(value)) {
             const test_case_data = <[test_name:string, params:any[][], value:(...args: any) => void | Promise<void>]>value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
-            if (test_case_data) TestManager.bindTestCase(group_name, ...test_case_data);
+            
+            if (test_case_data) TestManager.bindTestCase(
+                group_name, 
+                test_case_data[0],
+                test_case_data[1],
+                test_case_data[2]//Datex.Function.get(null, test_case_data[2]) // convert to DATEX function
+            );
         }
         
     }

@@ -14,8 +14,10 @@ await Datex.Cloud.connect();
 const tests = new Map().setAutoDefault(Map);
 let TestManager = class TestManager {
     static bindTestGroup(group_name, target) {
-        console.log("new test group", group_name);
-        tests.set(group_name, new Map());
+        if (!tests.has(group_name)) {
+            console.log("new test group", group_name);
+            tests.set(group_name, new Map());
+        }
     }
     static bindTestCase(group_name, test_name, params, func) {
         if (tests.getAuto(group_name).has(test_name)) {

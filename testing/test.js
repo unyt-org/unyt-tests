@@ -7,10 +7,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+import { f } from "../../unyt_core/datex.js";
 import { Datex, remote, scope, to } from "../../unyt_core/datex.js";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
-console.log("inside test");
-await Datex.Cloud.init();
+console.log("inside test, endpoint = " + process.env.endpoint);
+await Datex.Cloud.connectTemporary(f(process.env.endpoint));
 const TEST_CASE_DATA = Symbol("test_case");
 export function Test(...args) { return handleDecoratorArgs(args, _Test); }
 function _Test(value, name, kind, is_static, is_private, setMetadata, getMetadata, params = []) {
@@ -22,7 +23,7 @@ function _Test(value, name, kind, is_static, is_private, setMetadata, getMetadat
         for (let k of Object.getOwnPropertyNames(value)) {
             const test_case_data = value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
             if (test_case_data)
-                TestManager.bindTestCase(group_name, ...test_case_data);
+                TestManager.bindTestCase(group_name, test_case_data[0], test_case_data[1], test_case_data[2]);
         }
     }
     else if (kind == 'method') {

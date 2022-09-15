@@ -20,8 +20,10 @@ const tests = new Map<string, Map<string,TestCase>>().setAutoDefault(Map); //(aw
 @scope export class TestManager {
 
     @expose static bindTestGroup(group_name:string, target:Class){
-        console.log("new test group",group_name);
-        tests.set(group_name, new Map());
+        if (!tests.has(group_name)) {
+            console.log("new test group",group_name);
+            tests.set(group_name, new Map());
+        }
     }
 
     @expose static bindTestCase(group_name, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>){
@@ -30,12 +32,14 @@ const tests = new Map<string, Map<string,TestCase>>().setAutoDefault(Map); //(aw
         if (tests.getAuto(group_name).has(test_name)) {
             console.log("update existing test case",test_name, params);
             tests.get(group_name).get(test_name).func = func;
+            //tests.get(group_name).get(test_name).run();
         }
         // create new test case
         else {
             console.log("new test case",test_name, params);
             const test_case = new TestCase(test_name, params, func);
             tests.getAuto(group_name).set(test_name, test_case);
+            //test_case.run();
         }
 
     }
