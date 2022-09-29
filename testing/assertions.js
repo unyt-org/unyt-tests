@@ -13,11 +13,25 @@ let Assert = class Assert {
         if (value1 == value2)
             return true;
     });
+    static isTrue = Datex.Assertion.get(null, function (value) {
+        return value;
+    });
+    static isFalse = Datex.Assertion.get(null, function (value) {
+        return !value;
+    });
 };
 __decorate([
     expose,
     __metadata("design:type", Object)
 ], Assert, "equals", void 0);
+__decorate([
+    expose,
+    __metadata("design:type", Object)
+], Assert, "isTrue", void 0);
+__decorate([
+    expose,
+    __metadata("design:type", Object)
+], Assert, "isFalse", void 0);
 Assert = __decorate([
     scope("asssert")
 ], Assert);
