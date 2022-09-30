@@ -12,11 +12,23 @@ let Assert = class Assert {
     static equals = Datex.Assertion.get(null, function (value1, value2) {
         if (value1 == value2)
             return true;
-    });
+        return `${Datex.Runtime.valueToDatexString(value1)} does not equal ${Datex.Runtime.valueToDatexString(value2)}`;
+    }, false);
     static equalsStrict = Datex.Assertion.get(null, function (value1, value2) {
         if (value1 === value2)
             return true;
-    });
+        return `${Datex.Runtime.valueToDatexString(value1)} does not strictly equal ${Datex.Runtime.valueToDatexString(value2)}`;
+    }, false);
+    static true = Datex.Assertion.get(null, function (value) {
+        if (value === true)
+            return true;
+        return `${Datex.Runtime.valueToDatexString(value)} is not true`;
+    }, false);
+    static false = Datex.Assertion.get(null, function (value) {
+        if (value === false)
+            return true;
+        return `${Datex.Runtime.valueToDatexString(value)} is not false`;
+    }, false);
     static throws = Datex.Assertion.get(null, function (fun, type) {
         try {
             fun();
@@ -25,8 +37,8 @@ let Assert = class Assert {
             if (type == null || e instanceof type || (type instanceof Datex.Type && type.matches(e)))
                 return true;
         }
-        return false;
-    });
+        return `Did not throw`;
+    }, false);
     static throwsAsync = Datex.Assertion.get(null, async function (fun, type) {
         try {
             await fun();
@@ -35,7 +47,7 @@ let Assert = class Assert {
             if (type == null || e instanceof type || (type instanceof Datex.Type && type.matches(e)))
                 return true;
         }
-        return false;
+        return `Did not throw`;
     });
 };
 __decorate([
@@ -46,6 +58,14 @@ __decorate([
     expose,
     __metadata("design:type", Object)
 ], Assert, "equalsStrict", void 0);
+__decorate([
+    expose,
+    __metadata("design:type", Object)
+], Assert, "true", void 0);
+__decorate([
+    expose,
+    __metadata("design:type", Object)
+], Assert, "false", void 0);
 __decorate([
     expose,
     __metadata("design:type", Object)
