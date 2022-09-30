@@ -9,7 +9,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { f } from "../../unyt_core/datex.js";
 import { Datex, remote, scope, to } from "../../unyt_core/datex.js";
+import { Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
+Logger.development_log_level = LOG_LEVEL.WARNING;
+Logger.production_log_level = LOG_LEVEL.DEFAULT;
 console.log("inside test, endpoint = " + process.env.endpoint);
 await Datex.Cloud.connectTemporary(f(process.env.endpoint));
 const TEST_CASE_DATA = Symbol("test_case");

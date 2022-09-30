@@ -8,6 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { sync, property, constructor } from "../../unyt_core/datex.js";
+import { logger } from "../run.js";
 export var TEST_CASE_STATE;
 (function (TEST_CASE_STATE) {
     TEST_CASE_STATE[TEST_CASE_STATE["INITIALIZED"] = 0] = "INITIALIZED";
@@ -16,22 +17,21 @@ export var TEST_CASE_STATE;
     TEST_CASE_STATE[TEST_CASE_STATE["FAILED"] = 3] = "FAILED";
 })(TEST_CASE_STATE || (TEST_CASE_STATE = {}));
 let TestCase = class TestCase {
-    #func;
-    set func(func) {
-        this.#func = func;
-    }
+    func;
     name;
     state = TEST_CASE_STATE.INITIALIZED;
     params = [];
     results = [];
     async run() {
-        console.log("running test " + this.name);
+        logger.debug("running test ?: ?", this.name, this.params);
         this.state = TEST_CASE_STATE.INITIALIZED;
-        for (let variation of this.params) {
+        for (let variation of (this.params.length == 0 ? [[]] : this.params)) {
             try {
-                await this.#func(...variation);
+                await this.func(...variation);
+                logger.success(this.name);
             }
             catch (e) {
+                logger.error(this.name + ": " + e.message);
             }
         }
     }
@@ -39,7 +39,7 @@ let TestCase = class TestCase {
     construct(name, params, func) {
         this.name = name;
         this.params = params;
-        this.#func = func;
+        this.func = func;
     }
 };
 __decorate([

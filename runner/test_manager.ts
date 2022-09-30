@@ -9,8 +9,12 @@
  */
 // @ts-ignore
 import { Datex } from "../../unyt_core/datex.js";
-import { Class, expose, scope } from "../../unyt_core/datex_all.js";
+import { Class, expose, Logger, LOG_LEVEL, scope } from "../../unyt_core/datex_all.js";
+import { logger } from "../run.js";
 import { TestCase } from "./test_case.js";
+
+Logger.development_log_level = LOG_LEVEL.WARNING;
+Logger.production_log_level = LOG_LEVEL.DEFAULT;
 
 await Datex.Cloud.connect();
 
@@ -36,10 +40,10 @@ const tests = new Map<string, Map<string,TestCase>>().setAutoDefault(Map); //(aw
         }
         // create new test case
         else {
-            console.log("new test case",test_name, params);
             const test_case = new TestCase(test_name, params, func);
+            logger.info("new test case: ?",test_name);
             tests.getAuto(group_name).set(test_name, test_case);
-            //test_case.run();
+            test_case.run();
         }
 
     }

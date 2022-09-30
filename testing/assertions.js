@@ -13,11 +13,29 @@ let Assert = class Assert {
         if (value1 == value2)
             return true;
     });
-    static isTrue = Datex.Assertion.get(null, function (value) {
-        return value;
+    static equalsStrict = Datex.Assertion.get(null, function (value1, value2) {
+        if (value1 === value2)
+            return true;
     });
-    static isFalse = Datex.Assertion.get(null, function (value) {
-        return !value;
+    static throws = Datex.Assertion.get(null, function (fun, type) {
+        try {
+            fun();
+        }
+        catch (e) {
+            if (type == null || e instanceof type || (type instanceof Datex.Type && type.matches(e)))
+                return true;
+        }
+        return false;
+    });
+    static throwsAsync = Datex.Assertion.get(null, async function (fun, type) {
+        try {
+            await fun();
+        }
+        catch (e) {
+            if (type == null || e instanceof type || (type instanceof Datex.Type && type.matches(e)))
+                return true;
+        }
+        return false;
     });
 };
 __decorate([
@@ -27,12 +45,16 @@ __decorate([
 __decorate([
     expose,
     __metadata("design:type", Object)
-], Assert, "isTrue", void 0);
+], Assert, "equalsStrict", void 0);
 __decorate([
     expose,
     __metadata("design:type", Object)
-], Assert, "isFalse", void 0);
+], Assert, "throws", void 0);
+__decorate([
+    expose,
+    __metadata("design:type", Object)
+], Assert, "throwsAsync", void 0);
 Assert = __decorate([
-    scope("asssert")
+    scope("assert")
 ], Assert);
 export { Assert };

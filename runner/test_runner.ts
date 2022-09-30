@@ -1,3 +1,5 @@
+import { logger } from "../run.js";
+import { getUrlFromPath } from "./utils.js";
 
 export namespace TestRunner {
 
@@ -9,11 +11,14 @@ export namespace TestRunner {
 
 export abstract class TestRunner {
 
-	protected file_paths:Set<string>
+	protected file_paths:Set<URL>
 	protected options:TestRunner.Options
 
-	constructor(file_paths:string[], options:TestRunner.Options = {}) {
-		this.file_paths = new Set(file_paths);
+	constructor(file_paths:(string|URL)[], options:TestRunner.Options = {}) {
+		for (let i=0; i<file_paths.length;i++) {
+			if (typeof file_paths[i] == "string") file_paths[i] = getUrlFromPath(<string>file_paths[i]);
+		}
+		this.file_paths = new Set(<URL[]>file_paths);
 		this.options = options;
 	}
 
@@ -21,11 +26,15 @@ export abstract class TestRunner {
 		for (let path of this.file_paths) this.run(path);
 	}
 
-	public run(path:string){
-		console.log("running test: " + path);
-		this.handleRun(path);
+	public run(path:URL){
+		logger.info("running test: " + path);
+		try {
+			this.handleRun(path);
+		} catch (e) {
+			logger.error("Error starting test environment")
+		}
 	}
 
-	protected abstract handleRun(path:string)
+	protected abstract handleRun(path:URL)
 	
 }

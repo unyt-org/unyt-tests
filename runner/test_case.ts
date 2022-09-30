@@ -1,4 +1,5 @@
 import { sync, property, constructor } from "../../unyt_core/datex.js";
+import { logger } from "../run.js";
 
 export enum TEST_CASE_STATE {
 	INITIALIZED,
@@ -9,11 +10,7 @@ export enum TEST_CASE_STATE {
 
 @sync export class TestCase {
 
-	#func:(...args:any)=>void|Promise<void>
-
-	set func(func:(...args:any)=>void|Promise<void>) {
-		this.#func = func;
-	}
+	func:(...args:any)=>void|Promise<void>
 
 	@property name:string
 	@property state = TEST_CASE_STATE.INITIALIZED;
@@ -21,15 +18,16 @@ export enum TEST_CASE_STATE {
 	@property results:any[] = []
 
 	@property async run(){
-		console.log("running test " + this.name);
+		logger.debug("running test ?: ?", this.name, this.params);
 		this.state = TEST_CASE_STATE.INITIALIZED;
 
-		for (let variation of this.params) {
+		for (let variation of (this.params.length == 0 ? [[]] : this.params)) {
 			try {
-				await this.#func(...variation);
+				await this.func(...variation);
+				logger.success(this.name);
 			}
 			catch (e) {
-
+				logger.error(this.name+ ": " + e.message);
 			}
 		}
 	}
@@ -38,6 +36,6 @@ export enum TEST_CASE_STATE {
 	@constructor construct(name:string, params:any[][], func:(...args:any)=>void|Promise<void>) {
 		this.name = name;
 		this.params = params;
-		this.#func = func;
+		this.func = func;
 	}
 }

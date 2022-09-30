@@ -8,8 +8,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { Datex } from "../../unyt_core/datex.js";
-import { expose, scope } from "../../unyt_core/datex_all.js";
+import { expose, Logger, LOG_LEVEL, scope } from "../../unyt_core/datex_all.js";
+import { logger } from "../run.js";
 import { TestCase } from "./test_case.js";
+Logger.development_log_level = LOG_LEVEL.WARNING;
+Logger.production_log_level = LOG_LEVEL.DEFAULT;
 await Datex.Cloud.connect();
 const tests = new Map().setAutoDefault(Map);
 let TestManager = class TestManager {
@@ -25,9 +28,10 @@ let TestManager = class TestManager {
             tests.get(group_name).get(test_name).func = func;
         }
         else {
-            console.log("new test case", test_name, params);
             const test_case = new TestCase(test_name, params, func);
+            logger.info("new test case: ?", test_name);
             tests.getAuto(group_name).set(test_name, test_case);
+            test_case.run();
         }
     }
     static runAll() {
