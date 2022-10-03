@@ -1,5 +1,5 @@
 /**
- * unyt Test library with UIX viewer
+ * unyt Test library
  * 
  * decorators:
  * - currently using legacy typescript decorators, TODO migrate to JS decorators in the future (https://github.com/tc39/proposal-decorators)
@@ -7,6 +7,7 @@
  *   otherwise the program breaks !!... 
  *   not sure about the order in the decorator proposal (but static methods before class decorator would make sense)
  */
+
 // @ts-ignore
 import type { Class } from "../../unyt_core/datex.js";
 import { f } from "../../unyt_core/datex.js";
@@ -17,12 +18,12 @@ import { handleDecoratorArgs, context_kind, context_meta_getter, context_meta_se
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
 
-console.log("inside test, endpoint = " + process.env.endpoint)
 await Datex.Cloud.connectTemporary(f(<endpoint_name>process.env.endpoint));
 
 
 const TEST_CASE_DATA = Symbol("test_case");
 
+const context = new URL(process.env.context);
 
 // @Test (legacy decorators support)
 export function Test(name:string)
@@ -39,19 +40,30 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
         if (!(typeof params[0] == "string")) params[0] = <string>name;
         
         const group_name = params[0]??<string>name;
-        TestManager.bindTestGroup(group_name, value);
 
-        for (let k of Object.getOwnPropertyNames(value)) {
-            const test_case_data = <[test_name:string, params:any[][], value:(...args: any) => void | Promise<void>]>value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
-                        
-            if (test_case_data) TestManager.bindTestCase(
-                group_name, 
-                test_case_data[0],
-                test_case_data[1],
-                test_case_data[2]//Datex.Function.get(null, test_case_data[2]) // convert to DATEX function
-            );
-        }
-        
+        (async ()=>{
+            await TestManager.registerTestGroup(context, group_name);
+
+            const test_case_promises:Promise<void>[] = []
+
+            for (let k of Object.getOwnPropertyNames(value)) {
+                const test_case_data = <[test_name:string, params:any[][], value:(...args: any) => void | Promise<void>]>value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
+                            
+                if (test_case_data) test_case_promises.push(TestManager.bindTestCase(
+                    context,
+                    group_name, 
+                    test_case_data[0],
+                    test_case_data[1],
+                    test_case_data[2]//Datex.Function.get(null, test_case_data[2]) // convert to DATEX function
+                ));
+            }
+
+            await Promise.all(test_case_promises);
+
+            await TestManager.testGroupLoaded(context, group_name);
+            setTimeout(()=>TestManager.contextLoaded(context), 1000)
+        })()
+   
     }
     else if (kind == 'method') {
         // convert single parameters to parameter arrays
@@ -69,7 +81,12 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
 // TestManager in main process
 @scope @to(process.env.test_manager??Datex.LOCAL_ENDPOINT) class TestManager {
 
-    @remote static bindTestGroup(group_name:string, target:Class){}
-    @remote static bindTestCase(group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>){}
+    @remote static registerContext(context:URL):Promise<void>{return null}
+    @remote static contextLoaded(context:URL):Promise<void>{return null}
+    @remote static registerTestGroup(context:URL, group_name:string):Promise<void>{return null}
+    @remote static testGroupLoaded(context:URL, group_name:string):Promise<void>{return null}
+    @remote static bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>):Promise<void>{return null}
 
 }
+
+await TestManager.registerContext(context);

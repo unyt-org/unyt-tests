@@ -13,21 +13,27 @@ import { Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
-console.log("inside test, endpoint = " + process.env.endpoint);
 await Datex.Cloud.connectTemporary(f(process.env.endpoint));
 const TEST_CASE_DATA = Symbol("test_case");
+const context = new URL(process.env.context);
 export function Test(...args) { return handleDecoratorArgs(args, _Test); }
 function _Test(value, name, kind, is_static, is_private, setMetadata, getMetadata, params = []) {
     if (kind == 'class') {
         if (!(typeof params[0] == "string"))
             params[0] = name;
         const group_name = params[0] ?? name;
-        TestManager.bindTestGroup(group_name, value);
-        for (let k of Object.getOwnPropertyNames(value)) {
-            const test_case_data = value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
-            if (test_case_data)
-                TestManager.bindTestCase(group_name, test_case_data[0], test_case_data[1], test_case_data[2]);
-        }
+        (async () => {
+            await TestManager.registerTestGroup(context, group_name);
+            const test_case_promises = [];
+            for (let k of Object.getOwnPropertyNames(value)) {
+                const test_case_data = value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
+                if (test_case_data)
+                    test_case_promises.push(TestManager.bindTestCase(context, group_name, test_case_data[0], test_case_data[1], test_case_data[2]));
+            }
+            await Promise.all(test_case_promises);
+            await TestManager.testGroupLoaded(context, group_name);
+            setTimeout(() => TestManager.contextLoaded(context), 1000);
+        })();
     }
     else if (kind == 'method') {
         for (let i = 0; i < params.length; i++) {
@@ -39,22 +45,44 @@ function _Test(value, name, kind, is_static, is_private, setMetadata, getMetadat
     }
 }
 let TestManager = class TestManager {
-    static bindTestGroup(group_name, target) { }
-    static bindTestCase(group_name, test_name, params, func) { }
+    static registerContext(context) { return null; }
+    static contextLoaded(context) { return null; }
+    static registerTestGroup(context, group_name) { return null; }
+    static testGroupLoaded(context, group_name) { return null; }
+    static bindTestCase(context, group_name, test_name, params, func) { return null; }
 };
 __decorate([
     remote,
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
-], TestManager, "bindTestGroup", null);
+    __metadata("design:paramtypes", [URL]),
+    __metadata("design:returntype", Promise)
+], TestManager, "registerContext", null);
 __decorate([
     remote,
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Array, Function]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [URL]),
+    __metadata("design:returntype", Promise)
+], TestManager, "contextLoaded", null);
+__decorate([
+    remote,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [URL, String]),
+    __metadata("design:returntype", Promise)
+], TestManager, "registerTestGroup", null);
+__decorate([
+    remote,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [URL, String]),
+    __metadata("design:returntype", Promise)
+], TestManager, "testGroupLoaded", null);
+__decorate([
+    remote,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [URL, String, String, Array, Function]),
+    __metadata("design:returntype", Promise)
 ], TestManager, "bindTestCase", null);
 TestManager = __decorate([
     scope,
     to(process.env.test_manager ?? Datex.LOCAL_ENDPOINT)
 ], TestManager);
+await TestManager.registerContext(context);

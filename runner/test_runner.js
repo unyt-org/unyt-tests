@@ -1,3 +1,4 @@
+import { Datex } from "../../unyt_core/datex.js";
 import { logger } from "../run.js";
 import { getUrlFromPath } from "./utils.js";
 export class TestRunner {
@@ -11,14 +12,15 @@ export class TestRunner {
         this.file_paths = new Set(file_paths);
         this.options = options;
     }
-    runAll() {
+    loadAll() {
         for (let path of this.file_paths)
-            this.run(path);
+            this.load(path);
     }
-    run(path) {
-        logger.info("running test: " + path);
+    load(path) {
+        const endpoint = Datex.Runtime.endpoint.getInstance("t" + Math.floor(Math.random() * 10000));
+        logger.info `running ${path} on ${endpoint}`;
         try {
-            this.handleRun(path);
+            this.handleLoad(path, endpoint);
         }
         catch (e) {
             logger.error("Error starting test environment");

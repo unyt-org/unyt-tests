@@ -10,50 +10,114 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 import { Datex } from "../../unyt_core/datex.js";
 import { expose, Logger, LOG_LEVEL, scope } from "../../unyt_core/datex_all.js";
 import { logger } from "../run.js";
-import { TestCase } from "./test_case.js";
+import { TestGroup, TEST_CASE_STATE } from "./test_case.js";
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
 await Datex.Cloud.connect();
-const tests = new Map().setAutoDefault(Map);
+const tests = new Map();
 let TestManager = class TestManager {
-    static bindTestGroup(group_name, target) {
-        if (!tests.has(group_name)) {
-            console.log("new test group", group_name);
-            tests.set(group_name, new Map());
+    static RUN_TESTS_IMMEDIATELY = false;
+    static printReportAndExit(contexts) {
+        let successful = true;
+        for (let context of contexts) {
+            for (let group of tests.get(context.toString()).values()) {
+                group.printReport();
+                if (group.state != TEST_CASE_STATE.SUCCESSFUL)
+                    successful = false;
+            }
+        }
+        if (successful)
+            process.exit();
+        else
+            process.exit(1);
+    }
+    static async finishContexts(contexts) {
+        return Promise.all(contexts.map(context => this.finishContext(context)));
+    }
+    static async finishContext(context) {
+        await this.waitForContextLoad(context);
+        logger.debug("finished context " + context);
+        for (let group of tests.get(context.toString()).values()) {
+            await group.finishAllTests();
         }
     }
-    static bindTestCase(group_name, test_name, params, func) {
-        if (tests.getAuto(group_name).has(test_name)) {
-            console.log("update existing test case", test_name, params);
-            tests.get(group_name).get(test_name).func = func;
+    static context_promises = new Map();
+    static context_resolves = new Map();
+    static waitForContextLoad(context) {
+        let context_string = context.toString();
+        if (this.context_promises.has(context_string))
+            return this.context_promises.get(context_string);
+        else {
+            const promise = new Promise(resolve => this.context_resolves.set(context_string, resolve));
+            this.context_promises.set(context_string, promise);
+            return promise;
+        }
+    }
+    static registerContext(context) {
+        logger.debug("registered context: " + context);
+        tests.set(context.toString(), new Map());
+    }
+    static registerTestGroup(context, group_name) {
+        if (!tests.has(group_name)) {
+            logger.debug("new test group ? ?", group_name, context);
+            tests.get(context.toString()).set(group_name, new TestGroup(group_name, context));
+        }
+    }
+    static async testGroupLoaded(context, group_name) {
+    }
+    static async contextLoaded(context) {
+        let context_string = context.toString();
+        logger.debug("context loaded: " + context_string);
+        if (this.context_resolves.has(context_string)) {
+            this.context_resolves.get(context_string)();
+            this.context_resolves.delete(context_string);
+        }
+    }
+    static bindTestCase(context, group_name, test_name, params, func) {
+        let context_string = context.toString();
+        if (!tests.has(context_string)) {
+            logger.error("trying to bind test case to unknown context " + context);
+            return;
+        }
+        else if (!tests.get(context_string).has(group_name)) {
+            logger.error("trying to bind test case to unknown test group " + group_name);
+            return;
         }
         else {
-            const test_case = new TestCase(test_name, params, func);
-            logger.info("new test case: ?", test_name);
-            tests.getAuto(group_name).set(test_name, test_case);
-            test_case.run();
-        }
-    }
-    static runAll() {
-        for (let [group_name, group] of tests) {
-            console.log("running test group: " + group_name);
-            for (let [test_name, test] of group) {
-                console.log("running test: " + test_name);
-                test.run();
-            }
+            const test_case = tests.get(context_string).get(group_name).setTestCase(test_name, params, func);
+            if (this.RUN_TESTS_IMMEDIATELY)
+                test_case.run();
         }
     }
 };
 __decorate([
     expose,
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [URL]),
     __metadata("design:returntype", void 0)
-], TestManager, "bindTestGroup", null);
+], TestManager, "registerContext", null);
 __decorate([
     expose,
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, Array, Function]),
+    __metadata("design:paramtypes", [URL, String]),
+    __metadata("design:returntype", void 0)
+], TestManager, "registerTestGroup", null);
+__decorate([
+    expose,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [URL, String]),
+    __metadata("design:returntype", Promise)
+], TestManager, "testGroupLoaded", null);
+__decorate([
+    expose,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [URL]),
+    __metadata("design:returntype", Promise)
+], TestManager, "contextLoaded", null);
+__decorate([
+    expose,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [URL, String, String, Array, Function]),
     __metadata("design:returntype", void 0)
 ], TestManager, "bindTestCase", null);
 TestManager = __decorate([

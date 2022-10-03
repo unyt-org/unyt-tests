@@ -1,3 +1,4 @@
+import { Datex } from "../../unyt_core/datex.js";
 import { logger } from "../run.js";
 import { getUrlFromPath } from "./utils.js";
 
@@ -22,19 +23,20 @@ export abstract class TestRunner {
 		this.options = options;
 	}
 
-	public runAll(){
-		for (let path of this.file_paths) this.run(path);
+	public loadAll(){
+		for (let path of this.file_paths) this.load(path);
 	}
 
-	public run(path:URL){
-		logger.info("running test: " + path);
+	public load(path:URL){
+		const endpoint = Datex.Runtime.endpoint.getInstance("t"+Math.floor(Math.random()*10000))
+		logger.info `running ${path} on ${endpoint}`;
 		try {
-			this.handleRun(path);
+			this.handleLoad(path, endpoint);
 		} catch (e) {
 			logger.error("Error starting test environment")
 		}
 	}
 
-	protected abstract handleRun(path:URL)
+	protected abstract handleLoad(path:URL, endpoint:Datex.Endpoint)
 	
 }
