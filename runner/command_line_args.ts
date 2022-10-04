@@ -1,6 +1,5 @@
 // @ts-ignore
 import commandLineArgs from 'command-line-args';
-import { string } from '../../unyt_core/datex.js';
 import { SUPPORTED_REPORT_TYPES } from './constants.js';
 import { exitWithError } from './utils.js';
 

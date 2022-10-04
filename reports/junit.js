@@ -18,7 +18,7 @@ export class JUnitReportGenerator extends ReportGenerator {
             total_tests += group.test_count;
         }
         let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-        xml += `<testsuites tests="${total_tests}" failures="${total_failures}" time="${total_duration.toFixed(3)}">\n`;
+        xml += `<testsuites id="${this.formattedTimestampId()}" name="Test on ${new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()}" tests="${total_tests}" failures="${total_failures}" time="${total_duration.toFixed(3)}">\n`;
         for (let group of groups) {
             xml += `  <testsuite id="${sanitizeArg(group.name)}" name="${sanitizeArg(group.formatted_name)}" tests="${group.test_count}" failures="${group.failed_tests}" time="${group.duration.toFixed(3)}">\n`;
             for (let test of group.test_cases.values()) {
@@ -26,7 +26,7 @@ export class JUnitReportGenerator extends ReportGenerator {
                 for (let result of test.results) {
                     if (result[0] == false) {
                         xml += `      <failure message="${sanitizeArg(result[2] instanceof Error ? (result[2].constructor.name + ": " + result[2].message) :
-                            Datex.Runtime.valueToDatexString(result[2], false))}">\n`;
+                            Datex.Runtime.valueToDatexString(result[2], false))}" type="WARNING">\n`;
                         xml += result[2] instanceof Error ? result[2].stack : (Datex.Runtime.valueToDatexString(result[2]) + '\n');
                         xml += `      </failure>\n`;
                     }
@@ -37,5 +37,9 @@ export class JUnitReportGenerator extends ReportGenerator {
         }
         xml += `</testsuites>`;
         return xml;
+    }
+    formattedTimestampId() {
+        const date = new Date();
+        return date.getFullYear() + (date.getMonth() + 1).toString().padStart(2, "0") + (date.getDate()).toString().padStart(2, "0") + "_" + date.getHours().toString().padStart(2, "0") + date.getMinutes().toString().padStart(2, "0") + date.getSeconds().toString().padStart(2, "0");
     }
 }

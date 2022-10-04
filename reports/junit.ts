@@ -22,7 +22,7 @@ export class JUnitReportGenerator extends ReportGenerator {
 		}
 
 		let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`
-		xml += `<testsuites tests="${total_tests}" failures="${total_failures}" time="${total_duration.toFixed(3)}">\n`
+		xml += `<testsuites id="${this.formattedTimestampId()}" name="Test on ${new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()}" tests="${total_tests}" failures="${total_failures}" time="${total_duration.toFixed(3)}">\n`
 
 		for (let group of groups) {
 			xml += `  <testsuite id="${sanitizeArg(group.name)}" name="${sanitizeArg(group.formatted_name)}" tests="${group.test_count}" failures="${group.failed_tests}" time="${group.duration.toFixed(3)}">\n`
@@ -33,7 +33,7 @@ export class JUnitReportGenerator extends ReportGenerator {
 						xml += `      <failure message="${sanitizeArg(
 								result[2] instanceof Error ? (result[2].constructor.name + ": " + result[2].message):
 								Datex.Runtime.valueToDatexString(result[2],false)
-							)}">\n`
+							)}" type="WARNING">\n`
 						xml += result[2] instanceof Error ? result[2].stack : (Datex.Runtime.valueToDatexString(result[2]) + '\n')
 						xml += `      </failure>\n`
 					}
@@ -47,6 +47,11 @@ export class JUnitReportGenerator extends ReportGenerator {
 
 		xml += `</testsuites>`
 		return xml;
+	}
+
+	private formattedTimestampId(){
+		const date =new Date();
+		return date.getFullYear()+(date.getMonth()+1).toString().padStart(2,"0")+(date.getDate()).toString().padStart(2,"0")+"_"+date.getHours().toString().padStart(2,"0")+date.getMinutes().toString().padStart(2,"0")+date.getSeconds().toString().padStart(2,"0")
 	}
 
 }
