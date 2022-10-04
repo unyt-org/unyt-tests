@@ -18,9 +18,10 @@ export class JUnitReportGenerator extends ReportGenerator {
             total_tests += group.test_count;
         }
         let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-        xml += `<testsuites id="${this.formattedTimestampId()}" name="Test on ${new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()}" tests="${total_tests}" failures="${total_failures}" time="${total_duration.toFixed(3)}">\n`;
+        xml += `<testsuites id="${this.formattedTimestampId()}" name="Tests on ${new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()}" tests="${total_tests}" failures="${total_failures}" time="${total_duration.toFixed(3)}">\n`;
+        let i = 0;
         for (let group of groups) {
-            xml += `  <testsuite id="${sanitizeArg(group.name)}" name="${sanitizeArg(group.formatted_name)}" tests="${group.test_count}" failures="${group.failed_tests}" time="${group.duration.toFixed(3)}">\n`;
+            xml += `  <testsuite id="${i++}" name="${sanitizeArg(group.name)}" tests="${group.test_count}" failures="${group.failed_tests}" time="${group.duration.toFixed(3)}">\n`;
             for (let test of group.test_cases.values()) {
                 xml += `    <testcase id="${sanitizeArg(test.name)}" name="${sanitizeArg(test.formatted_name)}" time="${test.duration.toFixed(3)}">\n`;
                 for (let result of test.results) {
