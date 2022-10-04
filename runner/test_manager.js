@@ -35,6 +35,9 @@ let TestManager = class TestManager {
         }
         return successful;
     }
+    static getGroupsForContext(context) {
+        return tests.get(context.toString()).values();
+    }
     static async finishContexts(contexts) {
         return Promise.all(contexts.map(context => this.finishContext(context)));
     }

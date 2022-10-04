@@ -60,6 +60,8 @@ let TestCase = class TestCase {
     state = TEST_CASE_STATE.INITIALIZED;
     params = [];
     results = [];
+    tests_count = 0;
+    failed_tests = 0;
     duration;
     #finish_resolve;
     #await_finished;
@@ -86,6 +88,7 @@ let TestCase = class TestCase {
     async run() {
         this.#await_finished = new Promise(resolve => this.#finish_resolve = resolve);
         this.state = TEST_CASE_STATE.RUNNING;
+        this.failed_tests = 0;
         let duration = 0;
         let had_failure = false;
         for (let variation of (this.params.length == 0 ? [[]] : this.params)) {
@@ -101,6 +104,7 @@ let TestCase = class TestCase {
                 const t1 = performance.now();
                 duration += t1 - t0;
                 this.results.push([false, t1 - t0, e]);
+                this.failed_tests++;
                 had_failure = true;
             }
         }
@@ -116,6 +120,8 @@ let TestCase = class TestCase {
     }
     reset(params, func) {
         this.params = params;
+        this.tests_count = this.params.length == 0 ? 1 : this.params.length;
+        this.failed_tests = 0;
         this.func = func;
         this.#await_finished = null;
         this.state = TEST_CASE_STATE.INITIALIZED;
@@ -137,6 +143,14 @@ __decorate([
     property,
     __metadata("design:type", Array)
 ], TestCase.prototype, "results", void 0);
+__decorate([
+    property,
+    __metadata("design:type", Object)
+], TestCase.prototype, "tests_count", void 0);
+__decorate([
+    property,
+    __metadata("design:type", Object)
+], TestCase.prototype, "failed_tests", void 0);
 __decorate([
     property,
     __metadata("design:type", Number)
@@ -180,6 +194,24 @@ let TestGroup = class TestGroup {
             return TEST_CASE_STATE.FAILED;
         else
             return TEST_CASE_STATE.SUCCESSFUL;
+    }
+    get duration() {
+        let duration = 0;
+        for (let test of this.test_cases.values())
+            duration += test.duration;
+        return duration;
+    }
+    get failed_tests() {
+        let failed_tests = 0;
+        for (let test of this.test_cases.values())
+            failed_tests += test.failed_tests;
+        return failed_tests;
+    }
+    get test_count() {
+        let count = 0;
+        for (let test of this.test_cases.values())
+            count += test.tests_count;
+        return count;
     }
     get formatted_name() {
         if (!this.name.includes(" ")) {
@@ -252,6 +284,8 @@ let TestGroup = class TestGroup {
                     if (result[0] == false) {
                         if (result[2] instanceof AssertionError)
                             logger.plain `#color(white)${box.VERTICAL}#color(103,22,38)       • ${result[2].message.padEnd(leftCellWidth - 1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth + 3)}${box.VERTICAL}`;
+                        else if (result[2] instanceof Error)
+                            logger.plain `#color(white)${box.VERTICAL}#color(103,22,38)       • ${(result[2].constructor.name + ': ' + result[2].message).padEnd(leftCellWidth - 1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth + 3)}${box.VERTICAL}`;
                         else
                             logger.plain `#color(white)${box.VERTICAL}#color(103,22,38)       • ${Datex.Runtime.valueToDatexString(result[2], false).padEnd(leftCellWidth - 1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth + 3)}${box.VERTICAL}`;
                     }

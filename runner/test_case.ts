@@ -59,6 +59,9 @@ const NOBOX = {
 	@property params:any[][] = []
 	@property results:[boolean, number, any?][] = [] // successful, run time, error message
 
+	@property tests_count = 0;
+	@property failed_tests = 0;
+
 	@property duration:number
 
 	#finish_resolve:Function
@@ -98,6 +101,7 @@ const NOBOX = {
 		this.#await_finished = new Promise(resolve=>this.#finish_resolve=resolve)
 	
 		this.state = TEST_CASE_STATE.RUNNING;
+		this.failed_tests = 0;
 		let duration = 0
 
 		let had_failure = false;
@@ -116,6 +120,7 @@ const NOBOX = {
 				const t1 = performance.now();
 				duration += t1 - t0
 				this.results.push([false, t1 - t0, e]);
+				this.failed_tests ++;
 				had_failure = true;
 			}
 		}
@@ -137,6 +142,8 @@ const NOBOX = {
 
 	reset(params:any[][], func:(...args:any)=>void|Promise<void>) {
 		this.params = params;
+		this.tests_count = this.params.length == 0 ? 1 : this.params.length;
+		this.failed_tests = 0;
 		this.func = func;
 		this.#await_finished = null;
 		this.state = TEST_CASE_STATE.INITIALIZED;
@@ -166,6 +173,27 @@ const NOBOX = {
 		else if (has_running) return TEST_CASE_STATE.RUNNING;
 		else if (has_failed) return TEST_CASE_STATE.FAILED;
 		else return TEST_CASE_STATE.SUCCESSFUL;
+	}
+
+
+	get duration() {
+		let duration = 0;
+		for (let test of this.test_cases.values()) duration += test.duration;
+		return duration;
+	}
+
+	// total number of failures (can be multiple for each test case)
+	get failed_tests() {
+		let failed_tests = 0;
+		for (let test of this.test_cases.values()) failed_tests += test.failed_tests;
+		return failed_tests;
+	}
+
+	// total number of tests (can be more than number of test cases)
+	get test_count() {
+		let count = 0;
+		for (let test of this.test_cases.values()) count += test.tests_count;
+		return count;
 	}
 
 	get formatted_name(){
@@ -258,6 +286,7 @@ const NOBOX = {
 				for (let result of test.results) {
 					if (result[0] == false) {
 						if (result[2] instanceof AssertionError) logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${result[2].message.padEnd(leftCellWidth-1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
+						else if (result[2] instanceof Error) logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${(result[2].constructor.name + ': ' + result[2].message).padEnd(leftCellWidth-1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
 						else logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${Datex.Runtime.valueToDatexString(result[2],false).padEnd(leftCellWidth-1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
 					}
 				}

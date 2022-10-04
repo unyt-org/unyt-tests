@@ -40,6 +40,10 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
         return successful;
     }
 
+    static getGroupsForContext(context:URL) {
+        return tests.get(context.toString()).values();
+    }
+
 
     // wait for all contexts and run all tests
     static async finishContexts(contexts:URL[]) {

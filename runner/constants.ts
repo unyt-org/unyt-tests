@@ -4,4 +4,8 @@ export const SUPPORTED_EXTENSIONS = [
 	'.test.dx'
 ]
 
+export const SUPPORTED_REPORT_TYPES = [
+	'junit'
+]
+
 export const BOX_WIDTH = 95;

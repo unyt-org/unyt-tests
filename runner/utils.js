@@ -53,3 +53,7 @@ export function printHeaderInfo(files) {
     logger.plain `#color(white)║${' '.repeat(BOX_WIDTH - 2)}║`;
     logger.plain `#color(white)╚${'═'.repeat(BOX_WIDTH - 2)}╝`;
 }
+export function exitWithError(message) {
+    logger.plain('#color(red)' + message);
+    process.exit(1);
+}
