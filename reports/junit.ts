@@ -4,7 +4,7 @@ import { TestManager } from "../runner/test_manager.js";
 import { ReportGenerator } from "./generator.js";
 
 function sanitizeArg(string:string) {
-	return string.replace(/"/g,'\\"')
+	return string.replace(/"/g,'&quot;')
 }
 
 export class JUnitReportGenerator extends ReportGenerator {

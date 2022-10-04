@@ -2,7 +2,7 @@ import { Datex } from "../../unyt_core/datex.js";
 import { TestManager } from "../runner/test_manager.js";
 import { ReportGenerator } from "./generator.js";
 function sanitizeArg(string) {
-    return string.replace(/"/g, '\\"');
+    return string.replace(/"/g, '&quot;');
 }
 export class JUnitReportGenerator extends ReportGenerator {
     generateReportText() {
