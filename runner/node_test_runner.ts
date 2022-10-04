@@ -17,8 +17,8 @@ export class NodeTestRunner extends TestRunner {
 				context: path.toString()
 			},
 			// enable to suppress stdout 
-			// stdout:true, 
-			// stderr:true
+			stdout:true, 
+			stderr:true
 		});
 
 		worker.on('error', err => {

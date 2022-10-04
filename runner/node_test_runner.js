@@ -10,6 +10,8 @@ export class NodeTestRunner extends TestRunner {
                 endpoint: endpoint.toString(),
                 context: path.toString()
             },
+            stdout: true,
+            stderr: true
         });
         worker.on('error', err => {
             logger.error `Error in ${path}:
