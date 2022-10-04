@@ -29,7 +29,7 @@ export abstract class TestRunner {
 
 	public load(path:URL){
 		const endpoint = Datex.Runtime.endpoint.getInstance("t"+Math.floor(Math.random()*10000))
-		logger.info `running ${path} on ${endpoint}`;
+		logger.debug `running ${path} on ${endpoint}`;
 		try {
 			this.handleLoad(path, endpoint);
 		} catch (e) {

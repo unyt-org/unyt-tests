@@ -18,6 +18,13 @@ const tests = new Map();
 let TestManager = class TestManager {
     static RUN_TESTS_IMMEDIATELY = false;
     static printReportAndExit(contexts) {
+        let successful = this.printReport(contexts);
+        if (successful)
+            process.exit();
+        else
+            process.exit(1);
+    }
+    static printReport(contexts) {
         let successful = true;
         for (let context of contexts) {
             for (let group of tests.get(context.toString()).values()) {
@@ -26,10 +33,7 @@ let TestManager = class TestManager {
                     successful = false;
             }
         }
-        if (successful)
-            process.exit();
-        else
-            process.exit(1);
+        return successful;
     }
     static async finishContexts(contexts) {
         return Promise.all(contexts.map(context => this.finishContext(context)));

@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 import { sync, property, constructor, Datex } from "../../unyt_core/datex.js";
 import { AssertionError } from "../../unyt_core/datex_all.js";
 import { logger } from "../run.js";
+import { BOX_WIDTH } from "./constants.js";
 export var TEST_CASE_STATE;
 (function (TEST_CASE_STATE) {
     TEST_CASE_STATE[TEST_CASE_STATE["INITIALIZED"] = 0] = "INITIALIZED";
@@ -17,6 +18,42 @@ export var TEST_CASE_STATE;
     TEST_CASE_STATE[TEST_CASE_STATE["SUCCESSFUL"] = 2] = "SUCCESSFUL";
     TEST_CASE_STATE[TEST_CASE_STATE["FAILED"] = 3] = "FAILED";
 })(TEST_CASE_STATE || (TEST_CASE_STATE = {}));
+const BOX_DOUBLE = {
+    HORIZONTAL: '═',
+    VERTICAL: '║',
+    TOP_LEFT: '╔',
+    TOP_RIGHT: '╗',
+    BOTTOM_LEFT: '╚',
+    BOTTOM_RIGHT: '╝',
+    T_DOWN: '╦',
+    T_UP: '╩',
+    T_LEFT: '╣',
+    T_RIGHT: '╠',
+};
+const BOX_SINGLE = {
+    HORIZONTAL: '─',
+    VERTICAL: '│',
+    TOP_LEFT: '┌',
+    TOP_RIGHT: '┐',
+    BOTTOM_LEFT: '└',
+    BOTTOM_RIGHT: '┘',
+    T_DOWN: '┬',
+    T_UP: '┴',
+    T_LEFT: '┤',
+    T_RIGHT: '├',
+};
+const NOBOX = {
+    HORIZONTAL: '',
+    VERTICAL: '',
+    TOP_LEFT: '',
+    TOP_RIGHT: '',
+    BOTTOM_LEFT: '',
+    BOTTOM_RIGHT: '',
+    T_DOWN: '',
+    T_UP: '',
+    T_LEFT: '',
+    T_RIGHT: '',
+};
 let TestCase = class TestCase {
     func;
     name;
@@ -184,7 +221,8 @@ let TestGroup = class TestGroup {
         return Promise.all([...this.test_cases.values()].map(test => test.await_finished));
     }
     printReport() {
-        const width = 85;
+        const box = BOX_SINGLE;
+        const width = BOX_WIDTH;
         const innerWidth = width - 2;
         const rightCellWidth = 7;
         const runtimeWidth = 10;
@@ -192,14 +230,14 @@ let TestGroup = class TestGroup {
         const normalTextWidth = leftCellWidth - runtimeWidth;
         logger.plain("");
         if (this.state == TEST_CASE_STATE.SUCCESSFUL)
-            logger.plain `#color(white)╔═ [[#bold#color(green) SUCCESS ]]#bold#color(green) ${(this.formatted_name)} #color(white)${"═".repeat(innerWidth - this.formatted_name.length - 13)}╗`;
+            logger.plain `#color(white)${box.TOP_LEFT}${box.HORIZONTAL} [[#bold#color(green) PASS ]]#bold#color(green) ${(this.formatted_name)} #color(white)${box.HORIZONTAL.repeat(innerWidth - this.formatted_name.length - 10)}${box.TOP_RIGHT}`;
         else if (this.state == TEST_CASE_STATE.FAILED)
-            logger.plain `#color(white)╔═ [[#bold#color(red) FAILURE ]]#bold#color(red) ${(this.formatted_name)} #color(white)${"═".repeat(innerWidth - this.formatted_name.length - 13)}╗`;
-        logger.plain `#color(white)║${' '.repeat(innerWidth)}║`;
-        logger.plain `#color(white)║   File: #color(grey)${this.context.toString().replace("file://", "").padEnd(innerWidth - 9)}#color(white)║`;
-        logger.plain `#color(white)║${' '.repeat(innerWidth)}║`;
-        logger.plain `#color(white)╠${'═'.repeat(leftCellWidth + 8)}╦${'═'.repeat(rightCellWidth + 3)}╣`;
-        logger.plain `#color(white)║${' '.repeat(leftCellWidth + 8)}║${' '.repeat(rightCellWidth + 3)}║`;
+            logger.plain `#color(white)${box.TOP_LEFT}${box.HORIZONTAL} [[#bold#color(red) FAIL ]]#bold#color(red) ${(this.formatted_name)} #color(white)${box.HORIZONTAL.repeat(innerWidth - this.formatted_name.length - 10)}${box.TOP_RIGHT}`;
+        logger.plain `#color(white)${box.VERTICAL}${' '.repeat(innerWidth)}${box.VERTICAL}`;
+        logger.plain `#color(white)${box.VERTICAL}   File: #color(grey)${this.context.toString().replace("file://", "").padEnd(innerWidth - 9)}#color(white)${box.VERTICAL}`;
+        logger.plain `#color(white)${box.VERTICAL}${' '.repeat(innerWidth)}${box.VERTICAL}`;
+        logger.plain `#color(white)${box.T_RIGHT}${box.HORIZONTAL.repeat(leftCellWidth + 8)}${box.T_DOWN}${box.HORIZONTAL.repeat(rightCellWidth + 3)}${box.T_LEFT}`;
+        logger.plain `#color(white)${box.VERTICAL}${' '.repeat(leftCellWidth + 8)}${box.VERTICAL}${' '.repeat(rightCellWidth + 3)}${box.VERTICAL}`;
         for (let test of this.test_cases.values()) {
             const dur = `${test.duration.toFixed(2)}ms`;
             let right = 0;
@@ -207,22 +245,21 @@ let TestGroup = class TestGroup {
                 right += Number(result[0]);
             let success_rate = `${right}/${test.results.length}`;
             if (test.state == TEST_CASE_STATE.SUCCESSFUL)
-                logger.plain `#color(white)║#color(green)   ✓ ${test.formatted_name.padEnd(normalTextWidth, " ")} #color(13,93,47)${dur.padStart(runtimeWidth, " ")}  ║ #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ║`;
+                logger.plain `#color(white)${box.VERTICAL}#color(green)   ✓ ${test.formatted_name.padEnd(normalTextWidth, " ")} #color(13,93,47)${dur.padStart(runtimeWidth, " ")}  ${box.VERTICAL} #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ${box.VERTICAL}`;
             else if (test.state == TEST_CASE_STATE.FAILED) {
-                logger.plain `#color(white)║#color(red)   ☓ ${test.formatted_name.padEnd(normalTextWidth, " ")} #color(103,22,38)${dur.padStart(runtimeWidth, " ")}  ║ #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ║`;
+                logger.plain `#color(white)${box.VERTICAL}#color(red)   ☓ ${test.formatted_name.padEnd(normalTextWidth, " ")} #color(103,22,38)${dur.padStart(runtimeWidth, " ")}  ${box.VERTICAL} #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ${box.VERTICAL}`;
                 for (let result of test.results) {
                     if (result[0] == false) {
                         if (result[2] instanceof AssertionError)
-                            logger.plain `#color(white)║#color(103,22,38)       • ${result[2].message.padEnd(leftCellWidth - 1, " ")}#color(white)║${" ".repeat(rightCellWidth + 3)}║`;
+                            logger.plain `#color(white)${box.VERTICAL}#color(103,22,38)       • ${result[2].message.padEnd(leftCellWidth - 1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth + 3)}${box.VERTICAL}`;
                         else
-                            logger.plain `#color(white)║#color(103,22,38)       • ${Datex.Runtime.valueToDatexString(result[2], false).padEnd(leftCellWidth - 1, " ")}#color(white)║${" ".repeat(rightCellWidth + 3)}║`;
+                            logger.plain `#color(white)${box.VERTICAL}#color(103,22,38)       • ${Datex.Runtime.valueToDatexString(result[2], false).padEnd(leftCellWidth - 1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth + 3)}${box.VERTICAL}`;
                     }
                 }
             }
         }
-        logger.plain `#color(white)║${' '.repeat(leftCellWidth + 8)}║${' '.repeat(rightCellWidth + 3)}║`;
-        logger.plain `#color(white)╚${'═'.repeat(leftCellWidth + 8)}╩${'═'.repeat(rightCellWidth + 3)}╝`;
-        logger.plain('');
+        logger.plain `#color(white)${box.VERTICAL}${' '.repeat(leftCellWidth + 8)}${box.VERTICAL}${' '.repeat(rightCellWidth + 3)}${box.VERTICAL}`;
+        logger.plain `#color(white)${box.BOTTOM_LEFT}${box.HORIZONTAL.repeat(leftCellWidth + 8)}${box.T_UP}${box.HORIZONTAL.repeat(rightCellWidth + 3)}${box.BOTTOM_RIGHT}`;
     }
 };
 __decorate([

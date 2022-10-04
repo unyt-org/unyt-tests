@@ -21,8 +21,15 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
 
 
 
-    // print all reports for all groups of the contexts
+    // print all reports for all groups of the contexts and exit with status code
     static printReportAndExit(contexts:URL[]) {
+        let successful = this.printReport(contexts);
+        if (successful) process.exit()
+        else process.exit(1);
+    }
+
+    // print all reports for all groups of the contexts
+    static printReport(contexts:URL[]) {
         let successful = true;
         for (let context of contexts) {
             for (let group of tests.get(context.toString()).values()) {
@@ -30,8 +37,7 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
                 if (group.state != TEST_CASE_STATE.SUCCESSFUL) successful = false;
             }
         }
-        if (successful) process.exit()
-        else process.exit(1);
+        return successful;
     }
 
 

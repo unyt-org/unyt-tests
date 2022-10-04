@@ -13,9 +13,12 @@ import { Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
-await Datex.Cloud.connectTemporary(f(process.env.endpoint));
+const VAR_endpoint = globalThis.process ? process.env.endpoint : globalThis.unyt_test.endpoint;
+const VAR_test_manager = globalThis.process ? process.env.test_manager : globalThis.unyt_test.test_manager;
+const VAR_context = globalThis.process ? process.env.context : globalThis.unyt_test.context;
+await Datex.Cloud.connectTemporary(f(VAR_endpoint));
 const TEST_CASE_DATA = Symbol("test_case");
-const context = new URL(process.env.context);
+const context = new URL(VAR_context);
 export function Test(...args) { return handleDecoratorArgs(args, _Test); }
 function _Test(value, name, kind, is_static, is_private, setMetadata, getMetadata, params = []) {
     if (kind == 'class') {
@@ -83,6 +86,6 @@ __decorate([
 ], TestManager, "bindTestCase", null);
 TestManager = __decorate([
     scope,
-    to(process.env.test_manager ?? Datex.LOCAL_ENDPOINT)
+    to(VAR_test_manager ?? Datex.LOCAL_ENDPOINT)
 ], TestManager);
 await TestManager.registerContext(context);

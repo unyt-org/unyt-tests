@@ -18,12 +18,16 @@ import { handleDecoratorArgs, context_kind, context_meta_getter, context_meta_se
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
 
-await Datex.Cloud.connectTemporary(f(<endpoint_name>process.env.endpoint));
+const VAR_endpoint = globalThis.process ? process.env.endpoint : globalThis.unyt_test.endpoint;
+const VAR_test_manager = globalThis.process ? process.env.test_manager : globalThis.unyt_test.test_manager;
+const VAR_context = globalThis.process ? process.env.context : globalThis.unyt_test.context;
+
+await Datex.Cloud.connectTemporary(f(<endpoint_name>VAR_endpoint));
 
 
 const TEST_CASE_DATA = Symbol("test_case");
 
-const context = new URL(process.env.context);
+const context = new URL(VAR_context);
 
 // @Test (legacy decorators support)
 export function Test(name:string)
@@ -79,7 +83,7 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
 }
 
 // TestManager in main process
-@scope @to(process.env.test_manager??Datex.LOCAL_ENDPOINT) class TestManager {
+@scope @to(VAR_test_manager??Datex.LOCAL_ENDPOINT) class TestManager {
 
     @remote static registerContext(context:URL):Promise<void>{return null}
     @remote static contextLoaded(context:URL):Promise<void>{return null}

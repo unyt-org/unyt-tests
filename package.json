@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "delete-node-require-cache": "^1.6.0"
+    "delete-node-require-cache": "^1.6.0",
+    "express": "^4.18.1",
+    "puppeteer": "^18.0.5"
   }
 }
