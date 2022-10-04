@@ -9,6 +9,7 @@
       "experimentalDecorators": true,
       "emitDecoratorMetadata": true,
       "useDefineForClassFields": true,
+      "skipLibCheck": true,
       "lib": [
           "esnext",
           "dom"
