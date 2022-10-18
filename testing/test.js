@@ -19,6 +19,7 @@ const VAR_context = globalThis.process ? process.env.context : globalThis.unyt_t
 await Datex.Cloud.connectTemporary(f(VAR_endpoint));
 const TEST_CASE_DATA = Symbol("test_case");
 const context = new URL(VAR_context);
+const manager = f(VAR_test_manager ?? Datex.LOCAL_ENDPOINT);
 export function Test(...args) { return handleDecoratorArgs(args, _Test); }
 function _Test(value, name, kind, is_static, is_private, setMetadata, getMetadata, params = []) {
     if (kind == 'class') {
@@ -26,16 +27,16 @@ function _Test(value, name, kind, is_static, is_private, setMetadata, getMetadat
             params[0] = name;
         const group_name = params[0] ?? name;
         (async () => {
-            await TestManager.registerTestGroup(context, group_name);
+            await TestManager.to(manager).registerTestGroup(context, group_name);
             const test_case_promises = [];
             for (let k of Object.getOwnPropertyNames(value)) {
                 const test_case_data = value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
                 if (test_case_data)
-                    test_case_promises.push(TestManager.bindTestCase(context, group_name, test_case_data[0], test_case_data[1], test_case_data[2]));
+                    test_case_promises.push(TestManager.to(manager).bindTestCase(context, group_name, test_case_data[0], test_case_data[1], test_case_data[2]));
             }
             await Promise.all(test_case_promises);
-            await TestManager.testGroupLoaded(context, group_name);
-            setTimeout(() => TestManager.contextLoaded(context), 1000);
+            await TestManager.to(manager).testGroupLoaded(context, group_name);
+            setTimeout(() => TestManager.to(manager).contextLoaded(context), 1000);
         })();
     }
     else if (kind == 'method') {
@@ -86,6 +87,6 @@ __decorate([
 ], TestManager, "bindTestCase", null);
 TestManager = __decorate([
     scope,
-    to(VAR_test_manager ?? Datex.LOCAL_ENDPOINT)
+    to(manager)
 ], TestManager);
-await TestManager.registerContext(context);
+await TestManager.to(manager).registerContext(context);

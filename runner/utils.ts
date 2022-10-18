@@ -1,5 +1,6 @@
 import {lstat, readdir} from 'node:fs/promises'
 import { Datex } from '../../unyt_core/datex.js';
+import { Logger } from '../../unyt_core/datex_all.js';
 import { logger } from '../run.js';
 import { BOX_WIDTH, SUPPORTED_EXTENSIONS, VERSION } from "./constants.js";
 

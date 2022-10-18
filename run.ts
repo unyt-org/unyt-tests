@@ -1,4 +1,4 @@
-import { Logger } from '../unyt_core/datex_all.js';
+import { Logger, LOG_FORMATTING } from '../unyt_core/datex_all.js';
 import { JUnitReportGenerator } from './reports/junit.js';
 import { ChromiumTestRunner } from './runner/chromium_test_runner.js';
 import { getCommandLineOptions } from './runner/command_line_args.js';
@@ -6,9 +6,10 @@ import { NodeTestRunner } from "./runner/node_test_runner.js";
 import { TestManager } from './runner/test_manager.js';
 import { getTestFiles, getUrlFromPath, printHeaderInfo } from './runner/utils.js';
 
-export const logger = new Logger("Test Runner", true);
+export const logger = new Logger("Test Runner", true, LOG_FORMATTING.PLAINTEXT);
 
 const options = getCommandLineOptions();
+
 //console.log(options);
 
 // get files (command line argument path)
@@ -28,7 +29,6 @@ printHeaderInfo(files);
 TestManager.RUN_TESTS_IMMEDIATELY = true; // start running tests when they are available
 new NodeTestRunner(files).loadAll(); // start up test environments for all test files
 await TestManager.finishContexts(files); // wait until all tests for the loaded files are finished
-
 
 // export report?
 if (options.reportfile) {

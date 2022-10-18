@@ -1,10 +1,10 @@
-import { Logger } from '../unyt_core/datex_all.js';
+import { Logger, LOG_FORMATTING } from '../unyt_core/datex_all.js';
 import { JUnitReportGenerator } from './reports/junit.js';
 import { getCommandLineOptions } from './runner/command_line_args.js';
 import { NodeTestRunner } from "./runner/node_test_runner.js";
 import { TestManager } from './runner/test_manager.js';
 import { getTestFiles, getUrlFromPath, printHeaderInfo } from './runner/utils.js';
-export const logger = new Logger("Test Runner", true);
+export const logger = new Logger("Test Runner", true, LOG_FORMATTING.PLAINTEXT);
 const options = getCommandLineOptions();
 let files;
 try {

@@ -28,6 +28,7 @@ await Datex.Cloud.connectTemporary(f(<endpoint_name>VAR_endpoint));
 const TEST_CASE_DATA = Symbol("test_case");
 
 const context = new URL(VAR_context);
+const manager = f(VAR_test_manager??Datex.LOCAL_ENDPOINT);
 
 // @Test (legacy decorators support)
 export function Test(name:string)
@@ -46,14 +47,14 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
         const group_name = params[0]??<string>name;
 
         (async ()=>{
-            await TestManager.registerTestGroup(context, group_name);
+            await TestManager.to(manager).registerTestGroup(context, group_name);
 
             const test_case_promises:Promise<void>[] = []
 
             for (let k of Object.getOwnPropertyNames(value)) {
                 const test_case_data = <[test_name:string, params:any[][], value:(...args: any) => void | Promise<void>]>value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
                             
-                if (test_case_data) test_case_promises.push(TestManager.bindTestCase(
+                if (test_case_data) test_case_promises.push(TestManager.to(manager).bindTestCase(
                     context,
                     group_name, 
                     test_case_data[0],
@@ -64,8 +65,8 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
 
             await Promise.all(test_case_promises);
 
-            await TestManager.testGroupLoaded(context, group_name);
-            setTimeout(()=>TestManager.contextLoaded(context), 1000)
+            await TestManager.to(manager).testGroupLoaded(context, group_name);
+            setTimeout(()=>TestManager.to(manager).contextLoaded(context), 1000)
         })()
    
     }
@@ -83,7 +84,7 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
 }
 
 // TestManager in main process
-@scope @to(VAR_test_manager??Datex.LOCAL_ENDPOINT) class TestManager {
+@scope @to(manager) class TestManager {
 
     @remote static registerContext(context:URL):Promise<void>{return null}
     @remote static contextLoaded(context:URL):Promise<void>{return null}
@@ -93,4 +94,4 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
 
 }
 
-await TestManager.registerContext(context);
+await TestManager.to(manager).registerContext(context);
