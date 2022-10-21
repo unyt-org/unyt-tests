@@ -8,7 +8,6 @@ import { Datex, expose, scope } from "../../unyt_core/datex.js";
 		return `${Datex.Runtime.valueToDatexString(value1)} does not equal ${Datex.Runtime.valueToDatexString(value2)}`;
 	}, false /* is sync function*/)
 
-
 	@expose static equalsStrict = Datex.Assertion.get(null, function (value1:any, value2:any){
 		if (value1 === value2) return true;
 		return `${Datex.Runtime.valueToDatexString(value1)} does not strictly equal ${Datex.Runtime.valueToDatexString(value2)}`;
@@ -44,6 +43,11 @@ import { Datex, expose, scope } from "../../unyt_core/datex.js";
 			if (type == null || e instanceof type || (type instanceof Datex.Type && type.matches(e))) return true;
 		}
 		return `Did not throw`;
+	})
+
+	@expose static sameValueAsync = Datex.Assertion.get(null, async function (value1:any, value2:any){
+		if (await Datex.Runtime.equalValues(value1, value2)) return true;
+		return `${Datex.Runtime.valueToDatexString(value1)} is not the same value as ${Datex.Runtime.valueToDatexString(value2)}`;
 	})
 
 }

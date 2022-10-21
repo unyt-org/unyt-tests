@@ -49,6 +49,11 @@ let Assert = class Assert {
         }
         return `Did not throw`;
     });
+    static sameValueAsync = Datex.Assertion.get(null, async function (value1, value2) {
+        if (await Datex.Runtime.equalValues(value1, value2))
+            return true;
+        return `${Datex.Runtime.valueToDatexString(value1)} is not the same value as ${Datex.Runtime.valueToDatexString(value2)}`;
+    });
 };
 __decorate([
     expose,
@@ -74,6 +79,10 @@ __decorate([
     expose,
     __metadata("design:type", Object)
 ], Assert, "throwsAsync", void 0);
+__decorate([
+    expose,
+    __metadata("design:type", Object)
+], Assert, "sameValueAsync", void 0);
 Assert = __decorate([
     scope("assert")
 ], Assert);

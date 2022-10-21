@@ -11,7 +11,8 @@ try {
     files = await getTestFiles(options.path);
 }
 catch (e) {
-    logger.error("Invalid path for test files");
+    console.log(e);
+    logger.error("Invalid path for test files: " + getUrlFromPath(options.path, true));
     process.exit();
 }
 printHeaderInfo(files);

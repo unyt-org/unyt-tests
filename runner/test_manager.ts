@@ -1,5 +1,5 @@
 // @ts-ignore
-import { Datex } from "../../unyt_core/datex.js";
+import { Datex, f } from "../../unyt_core/datex.js";
 import { Class, expose, Logger, LOG_LEVEL, scope } from "../../unyt_core/datex_all.js";
 import { logger } from "../run.js";
 import { TestCase, TestGroup, TEST_CASE_STATE } from "./test_case.js";
@@ -7,7 +7,8 @@ import { TestCase, TestGroup, TEST_CASE_STATE } from "./test_case.js";
 Logger.development_log_level = LOG_LEVEL.WARNING; // log level for debug logs (suppresses most)
 Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (log all)
 
-await Datex.Cloud.connect();
+// Datex.MessageLogger.enable(); for debugging
+await Datex.Supranet.init();
 
 // store all tests
 // context -> (group name -> group)

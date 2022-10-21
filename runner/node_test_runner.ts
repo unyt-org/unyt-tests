@@ -16,7 +16,7 @@ export class NodeTestRunner extends TestRunner {
 				endpoint:endpoint.toString(),
 				context: path.toString()
 			},
-			// enable to suppress stdout 
+			// disable to show stdout 
 			stdout:true, 
 			stderr:true
 		});

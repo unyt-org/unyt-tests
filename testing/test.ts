@@ -9,7 +9,6 @@
  */
 
 // @ts-ignore
-import type { Class } from "../../unyt_core/datex.js";
 import { f } from "../../unyt_core/datex.js";
 import { Datex, remote, scope, to } from "../../unyt_core/datex.js";
 import { endpoint_name, Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
@@ -22,8 +21,8 @@ const VAR_endpoint = globalThis.process ? process.env.endpoint : globalThis.unyt
 const VAR_test_manager = globalThis.process ? process.env.test_manager : globalThis.unyt_test.test_manager;
 const VAR_context = globalThis.process ? process.env.context : globalThis.unyt_test.context;
 
-await Datex.Cloud.connectTemporary(f(<endpoint_name>VAR_endpoint));
-
+//await Datex.Cloud.connectTemporary(f(<endpoint_name>VAR_endpoint));
+await Datex.Supranet.init(f(<endpoint_name>VAR_endpoint));
 
 const TEST_CASE_DATA = Symbol("test_case");
 
@@ -93,5 +92,6 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
     @remote static bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>):Promise<void>{return null}
 
 }
+
 
 await TestManager.to(manager).registerContext(context);
