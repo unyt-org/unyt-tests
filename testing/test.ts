@@ -22,7 +22,7 @@ const VAR_test_manager = globalThis.process ? process.env.test_manager : globalT
 const VAR_context = globalThis.process ? process.env.context : globalThis.unyt_test.context;
 
 //await Datex.Cloud.connectTemporary(f(<endpoint_name>VAR_endpoint));
-await Datex.Supranet.init(f(<endpoint_name>VAR_endpoint));
+await Datex.Supranet.init(f(<endpoint_name>VAR_endpoint), undefined, false);
 
 const TEST_CASE_DATA = Symbol("test_case");
 

@@ -13,7 +13,7 @@ import { logger } from "../run.js";
 import { TestGroup, TEST_CASE_STATE } from "./test_case.js";
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
-await Datex.Supranet.init();
+await Datex.Supranet.init(undefined, undefined, false);
 const tests = new Map();
 let TestManager = class TestManager {
     static RUN_TESTS_IMMEDIATELY = false;

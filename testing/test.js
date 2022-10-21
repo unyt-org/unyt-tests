@@ -16,7 +16,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT;
 const VAR_endpoint = globalThis.process ? process.env.endpoint : globalThis.unyt_test.endpoint;
 const VAR_test_manager = globalThis.process ? process.env.test_manager : globalThis.unyt_test.test_manager;
 const VAR_context = globalThis.process ? process.env.context : globalThis.unyt_test.context;
-await Datex.Supranet.init(f(VAR_endpoint));
+await Datex.Supranet.init(f(VAR_endpoint), undefined, false);
 const TEST_CASE_DATA = Symbol("test_case");
 const context = new URL(VAR_context);
 const manager = f(VAR_test_manager ?? Datex.LOCAL_ENDPOINT);

@@ -8,7 +8,7 @@ Logger.development_log_level = LOG_LEVEL.WARNING; // log level for debug logs (s
 Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (log all)
 
 // Datex.MessageLogger.enable(); for debugging
-await Datex.Supranet.init();
+await Datex.Supranet.init(undefined, undefined, false);
 
 // store all tests
 // context -> (group name -> group)
