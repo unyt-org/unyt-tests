@@ -7,7 +7,6 @@ import { TestCase, TestGroup, TEST_CASE_STATE } from "./test_case.js";
 Logger.development_log_level = LOG_LEVEL.WARNING; // log level for debug logs (suppresses most)
 Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (log all)
 
-// Datex.MessageLogger.enable(); for debugging
 await Datex.Supranet.init(undefined, undefined, false);
 
 // store all tests

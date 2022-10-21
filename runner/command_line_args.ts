@@ -10,7 +10,8 @@ type command_line_options = {
 	reportfile: string,
 	watch: boolean,
 	path: string,
-	color: 'rgb'|'simple'|'none'
+	color: 'rgb'|'simple'|'none',
+	verbose: boolean
 }
 
 const optionDefinitions = [
@@ -18,7 +19,9 @@ const optionDefinitions = [
 	{ name: 'reportfile', alias: 'r', type: String},
 	{ name: 'watch', alias: 'w', type: Boolean },
 	{ name: 'color', alias: 'c', type: String, defaultValue: 'rgb' },
-	{ name: 'path', alias: 'p', type: String, defaultOption: true }
+	{ name: 'path', alias: 'p', type: String, defaultOption: true },
+	{ name: 'verbose', alias: 'v', type: Boolean, defaultOption: false }
+
 ]
 
 export function getCommandLineOptions(): command_line_options {

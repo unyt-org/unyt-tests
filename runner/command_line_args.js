@@ -8,7 +8,8 @@ const optionDefinitions = [
     { name: 'reportfile', alias: 'r', type: String },
     { name: 'watch', alias: 'w', type: Boolean },
     { name: 'color', alias: 'c', type: String, defaultValue: 'rgb' },
-    { name: 'path', alias: 'p', type: String, defaultOption: true }
+    { name: 'path', alias: 'p', type: String, defaultOption: true },
+    { name: 'verbose', alias: 'v', type: Boolean, defaultOption: false }
 ];
 export function getCommandLineOptions() {
     const options = commandLineArgs(optionDefinitions);

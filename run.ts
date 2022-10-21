@@ -1,4 +1,5 @@
-import { Logger, LOG_FORMATTING } from '../unyt_core/datex_all.js';
+import { Datex } from '../unyt_core/datex.js';
+import { Logger, LOG_FORMATTING, LOG_LEVEL } from '../unyt_core/datex_all.js';
 import { JUnitReportGenerator } from './reports/junit.js';
 import { ChromiumTestRunner } from './runner/chromium_test_runner.js';
 import { getCommandLineOptions } from './runner/command_line_args.js';
@@ -9,6 +10,12 @@ import { getTestFiles, getUrlFromPath, printHeaderInfo } from './runner/utils.js
 export const logger = new Logger("Test Runner", true, LOG_FORMATTING.PLAINTEXT);
 
 const options = getCommandLineOptions();
+
+// debug mode
+if (options.verbose) {
+	Logger.development_log_level = LOG_LEVEL.VERBOSE; // show verbose debug logs 
+	Datex.MessageLogger.enable(); // log all datex messages
+}
 
 //console.log(options);
 
