@@ -1,7 +1,7 @@
 // @ts-ignore
 import commandLineArgs from 'command-line-args';
 import { LOG_FORMATTING } from '../../unyt_core/datex_all.js';
-import { logger } from '../run.js';
+import { logger } from './utils.js';
 import { SUPPORTED_REPORT_TYPES } from './constants.js';
 import { exitWithError } from './utils.js';
 

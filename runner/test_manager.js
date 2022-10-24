@@ -9,20 +9,26 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { Datex } from "../../unyt_core/datex.js";
 import { expose, Logger, LOG_LEVEL, scope } from "../../unyt_core/datex_all.js";
-import { logger } from "../run.js";
+import { logger } from "./utils.js";
 import { TestGroup, TEST_CASE_STATE } from "./test_case.js";
-Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
-await Datex.Supranet.init(undefined, undefined, false);
 const tests = new Map();
 let TestManager = class TestManager {
     static RUN_TESTS_IMMEDIATELY = false;
+    static async init() {
+        await Datex.Supranet.connect(undefined, undefined, false);
+    }
+    static async connect() {
+        await Datex.Supranet.connect(undefined, undefined, false);
+    }
     static printReportAndExit(contexts) {
         let successful = this.printReport(contexts);
-        if (successful)
-            process.exit();
-        else
-            process.exit(1);
+        if (globalThis.process) {
+            if (successful)
+                process.exit();
+            else
+                process.exit(1);
+        }
     }
     static printReport(contexts) {
         let successful = true;
@@ -65,10 +71,10 @@ let TestManager = class TestManager {
         tests.set(context.toString(), new Map());
     }
     static registerTestGroup(context, group_name) {
-        if (!tests.has(group_name)) {
-            logger.debug("new test group ? ?", group_name, context);
-            tests.get(context.toString()).set(group_name, new TestGroup(group_name, context));
-        }
+        if (!tests.has(context.toString()))
+            tests.set(context.toString(), new Map());
+        logger.debug("new test group ? ?", group_name, context);
+        tests.get(context.toString()).set(group_name, new TestGroup(group_name, context));
     }
     static async testGroupLoaded(context, group_name) {
     }

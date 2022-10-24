@@ -11,33 +11,53 @@ import { f } from "../../unyt_core/datex.js";
 import { Datex, remote, scope, to } from "../../unyt_core/datex.js";
 import { Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
-Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
-const VAR_endpoint = globalThis.process ? process.env.endpoint : globalThis.unyt_test.endpoint;
-const VAR_test_manager = globalThis.process ? process.env.test_manager : globalThis.unyt_test.test_manager;
-const VAR_context = globalThis.process ? process.env.context : globalThis.unyt_test.context;
-await Datex.Supranet.init(f(VAR_endpoint), undefined, false);
+let ENV = {};
+let init_resolve;
+const initialized = new Promise(resolve => init_resolve = resolve);
+async function init() {
+    await Datex.Supranet.connect(ENV.endpoint, undefined, false);
+    await TestManager.to(ENV.test_manager).registerContext(ENV.context);
+    init_resolve();
+}
+async function registerTests(group_name, value) {
+    await initialized;
+    await TestManager.to(ENV.test_manager).registerTestGroup(ENV.context, group_name);
+    const test_case_promises = [];
+    for (let k of Object.getOwnPropertyNames(value)) {
+        const test_case_data = value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
+        if (test_case_data)
+            test_case_promises.push(TestManager.to(ENV.test_manager).bindTestCase(ENV.context, group_name, test_case_data[0], test_case_data[1], test_case_data[2]));
+    }
+    await Promise.all(test_case_promises);
+    await TestManager.to(ENV.test_manager).testGroupLoaded(ENV.context, group_name);
+    setTimeout(() => TestManager.to(ENV.test_manager).contextLoaded(ENV.context), 1000);
+}
+if (globalThis.self) {
+    self.onmessage = async (e) => {
+        ENV.endpoint = f(e.data.endpoint);
+        ENV.test_manager = f(e.data.test_manager ?? Datex.LOCAL_ENDPOINT);
+        ENV.context = new URL(e.data.context);
+        init();
+    };
+}
+else if (globalThis.process) {
+    ENV.endpoint = f(process.env.endpoint);
+    ENV.test_manager = f((process.env.test_manager ?? Datex.LOCAL_ENDPOINT));
+    ENV.context = new URL(process.env.context);
+    init();
+}
+else {
+    throw new Error("Cannot get environment data for test worker");
+}
 const TEST_CASE_DATA = Symbol("test_case");
-const context = new URL(VAR_context);
-const manager = f(VAR_test_manager ?? Datex.LOCAL_ENDPOINT);
 export function Test(...args) { return handleDecoratorArgs(args, _Test); }
 function _Test(value, name, kind, is_static, is_private, setMetadata, getMetadata, params = []) {
     if (kind == 'class') {
         if (!(typeof params[0] == "string"))
             params[0] = name;
         const group_name = params[0] ?? name;
-        (async () => {
-            await TestManager.to(manager).registerTestGroup(context, group_name);
-            const test_case_promises = [];
-            for (let k of Object.getOwnPropertyNames(value)) {
-                const test_case_data = value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
-                if (test_case_data)
-                    test_case_promises.push(TestManager.to(manager).bindTestCase(context, group_name, test_case_data[0], test_case_data[1], test_case_data[2]));
-            }
-            await Promise.all(test_case_promises);
-            await TestManager.to(manager).testGroupLoaded(context, group_name);
-            setTimeout(() => TestManager.to(manager).contextLoaded(context), 1000);
-        })();
+        registerTests(group_name, value);
     }
     else if (kind == 'method') {
         for (let i = 0; i < params.length; i++) {
@@ -87,6 +107,5 @@ __decorate([
 ], TestManager, "bindTestCase", null);
 TestManager = __decorate([
     scope,
-    to(manager)
+    to(ENV.test_manager)
 ], TestManager);
-await TestManager.to(manager).registerContext(context);

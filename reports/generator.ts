@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { logger } from '../run.js';
+import { logger } from '../runner/utils.js';
 
 export abstract class ReportGenerator {
 

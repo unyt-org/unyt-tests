@@ -1,6 +1,6 @@
 import { sync, property, constructor, Datex } from "../../unyt_core/datex.js";
 import { AssertionError } from "../../unyt_core/datex_all.js";
-import { logger } from "../run.js";
+import { logger } from "./utils.js";
 import { BOX_WIDTH } from "./constants.js";
 
 export enum TEST_CASE_STATE {
@@ -72,7 +72,7 @@ const NOBOX = {
 			// snake case
 			if (this.name.includes("_")) return this.name.replace(/_/g, ' ').trim().toLowerCase()
 			// is camel case name
-			else if (/[A-Z]/.test(this.name) && /[a-z]/.test(this.name)) return this.name.replace(/([A-Z0-9])/g, ' $1').trim().toLowerCase()
+			else if (/[A-Z]/.test(this.name) && /[a-z]/.test(this.name)) return this.name.replace(/([^A-Z0-9])([A-Z0-9])/g, '$1 $2').replace(/([A-Z0-9])([A-Z0-9])([^A-Z0-9])/g, '$1 $2$3').trim().toLowerCase()
 			// just make lowercase for consitency
 			else return this.name.toLowerCase()
 		}
@@ -201,7 +201,7 @@ const NOBOX = {
 			// snake case
 			if (this.name.includes("_")) return this.name.replace(/_/g, ' ').trim()
 			// is camel case name
-			else if (/[A-Z]/.test(this.name) && /[a-z]/.test(this.name)) return this.name.replace(/([A-Z0-9])/g, ' $1').trim()
+			else if (/[A-Z]/.test(this.name) && /[a-z]/.test(this.name)) return this.name.replace(/([^A-Z0-9])([A-Z0-9])/g, '$1 $2').replace(/([A-Z0-9])([A-Z0-9])([^A-Z0-9])/g, '$1 $2$3').trim()
 			else return this.name
 		}
 		// already formatted
@@ -246,6 +246,11 @@ const NOBOX = {
 		return Promise.all([...this.test_cases.values()].map(test=>test.await_finished))
 	}
 
+	#trimText(text:string, max_length:number) {
+		if (text.length <= max_length) return text.padEnd(max_length, " ");
+		else return (text.slice(0, max_length-3) + "...").padEnd(max_length, " ");
+	}
+
 
 	printReport(){
 
@@ -285,8 +290,8 @@ const NOBOX = {
 				logger.plain  `#color(white)${box.VERTICAL}#color(red)   ☓ ${test.formatted_name.padEnd(normalTextWidth, " ")} #color(103,22,38)${dur.padStart(runtimeWidth, " ")}  ${box.VERTICAL} #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ${box.VERTICAL}`
 				for (let result of test.results) {
 					if (result[0] == false) {
-						if (result[2] instanceof AssertionError) logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${result[2].message.padEnd(leftCellWidth-1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
-						else if (result[2] instanceof Error) logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${(result[2].constructor.name + ': ' + result[2].message).padEnd(leftCellWidth-1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
+						if (result[2] instanceof AssertionError) logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${this.#trimText(result[2].message, leftCellWidth-1)}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
+						else if (result[2] instanceof Error) logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${this.#trimText(result[2].constructor.name + ': ' + result[2].message, leftCellWidth-1)}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
 						else logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${Datex.Runtime.valueToDatexString(result[2],false).padEnd(leftCellWidth-1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
 					}
 				}

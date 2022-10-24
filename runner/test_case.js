@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { sync, property, constructor, Datex } from "../../unyt_core/datex.js";
 import { AssertionError } from "../../unyt_core/datex_all.js";
-import { logger } from "../run.js";
+import { logger } from "./utils.js";
 import { BOX_WIDTH } from "./constants.js";
 export var TEST_CASE_STATE;
 (function (TEST_CASE_STATE) {
@@ -70,7 +70,7 @@ let TestCase = class TestCase {
             if (this.name.includes("_"))
                 return this.name.replace(/_/g, ' ').trim().toLowerCase();
             else if (/[A-Z]/.test(this.name) && /[a-z]/.test(this.name))
-                return this.name.replace(/([A-Z0-9])/g, ' $1').trim().toLowerCase();
+                return this.name.replace(/([^A-Z0-9])([A-Z0-9])/g, '$1 $2').replace(/([A-Z0-9])([A-Z0-9])([^A-Z0-9])/g, '$1 $2$3').trim().toLowerCase();
             else
                 return this.name.toLowerCase();
         }
@@ -218,7 +218,7 @@ let TestGroup = class TestGroup {
             if (this.name.includes("_"))
                 return this.name.replace(/_/g, ' ').trim();
             else if (/[A-Z]/.test(this.name) && /[a-z]/.test(this.name))
-                return this.name.replace(/([A-Z0-9])/g, ' $1').trim();
+                return this.name.replace(/([^A-Z0-9])([A-Z0-9])/g, '$1 $2').replace(/([A-Z0-9])([A-Z0-9])([^A-Z0-9])/g, '$1 $2$3').trim();
             else
                 return this.name;
         }
@@ -252,6 +252,12 @@ let TestGroup = class TestGroup {
     finishAllTests() {
         return Promise.all([...this.test_cases.values()].map(test => test.await_finished));
     }
+    #trimText(text, max_length) {
+        if (text.length <= max_length)
+            return text.padEnd(max_length, " ");
+        else
+            return (text.slice(0, max_length - 3) + "...").padEnd(max_length, " ");
+    }
     printReport() {
         const box = BOX_SINGLE;
         const width = BOX_WIDTH;
@@ -283,9 +289,9 @@ let TestGroup = class TestGroup {
                 for (let result of test.results) {
                     if (result[0] == false) {
                         if (result[2] instanceof AssertionError)
-                            logger.plain `#color(white)${box.VERTICAL}#color(103,22,38)       • ${result[2].message.padEnd(leftCellWidth - 1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth + 3)}${box.VERTICAL}`;
+                            logger.plain `#color(white)${box.VERTICAL}#color(103,22,38)       • ${this.#trimText(result[2].message, leftCellWidth - 1)}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth + 3)}${box.VERTICAL}`;
                         else if (result[2] instanceof Error)
-                            logger.plain `#color(white)${box.VERTICAL}#color(103,22,38)       • ${(result[2].constructor.name + ': ' + result[2].message).padEnd(leftCellWidth - 1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth + 3)}${box.VERTICAL}`;
+                            logger.plain `#color(white)${box.VERTICAL}#color(103,22,38)       • ${this.#trimText(result[2].constructor.name + ': ' + result[2].message, leftCellWidth - 1)}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth + 3)}${box.VERTICAL}`;
                         else
                             logger.plain `#color(white)${box.VERTICAL}#color(103,22,38)       • ${Datex.Runtime.valueToDatexString(result[2], false).padEnd(leftCellWidth - 1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth + 3)}${box.VERTICAL}`;
                     }

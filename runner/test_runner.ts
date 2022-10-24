@@ -1,6 +1,5 @@
 import { Datex } from "../../unyt_core/datex.js";
-import { logger } from "../run.js";
-import { getUrlFromPath } from "./utils.js";
+import { logger, getUrlFromPath } from "./utils.js";
 
 export namespace TestRunner {
 

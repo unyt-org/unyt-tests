@@ -1,8 +1,12 @@
-import { lstat, readdir } from 'node:fs/promises';
 import { Datex } from '../../unyt_core/datex.js';
-import { logger } from '../run.js';
+import { Logger, LOG_FORMATTING } from '../../unyt_core/datex_all.js';
 import { BOX_WIDTH, SUPPORTED_EXTENSIONS, VERSION } from "./constants.js";
+export const logger = new Logger("Test Runner", true, LOG_FORMATTING.PLAINTEXT);
+export const client_type = globalThis.process?.release?.name ? 'node' : 'browser';
+const { lstat, readdir } = client_type == 'node' ? (await import('node:fs/promises')) : { lstat: null, readdir: null };
 export async function isPathDirectory(path) {
+    if (!lstat)
+        throw new Error("Extended file utilities are not supported");
     const url = getUrlFromPath(path);
     return (await lstat(url)).isDirectory();
 }
@@ -27,6 +31,8 @@ export async function getTestFilesInDirectory(dirPath) {
     return files;
 }
 export async function searchDirectory(dirPath, files) {
+    if (!lstat)
+        throw new Error("Extended file utilities are not supported");
     await Promise.all((await readdir(dirPath)).map(async (entity) => {
         const path = new URL(entity, dirPath);
         if ((await lstat(path)).isDirectory())
