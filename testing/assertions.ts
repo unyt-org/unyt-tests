@@ -13,7 +13,7 @@ import { Datex, expose, scope } from "../../unyt_core/datex.js";
 		return `${Datex.Runtime.valueToDatexString(value1)} does not strictly equal ${Datex.Runtime.valueToDatexString(value2)}`;
 	}, false /* is sync function*/)
 
-	@expose static true = Datex.Assertion.get(null, function (value:any){
+	@expose static true = Datex.Assertion.get(null, function (value:any) {
 		if (value === true) return true;
 		return `${Datex.Runtime.valueToDatexString(value)} is not true`;
 	}, false /* is sync function*/)
@@ -23,6 +23,12 @@ import { Datex, expose, scope } from "../../unyt_core/datex.js";
 		return `${Datex.Runtime.valueToDatexString(value)} is not false`;
 	}, false /* is sync function*/)
 
+	@expose static hasProperty = Datex.Assertion.get(null, function (value:any, key:any){
+		if (key in value) return true;
+		return `${Datex.Runtime.valueToDatexString(value)} does not have property ${Datex.Runtime.valueToDatexString(key)}`;
+	}, false /* is sync function*/)
+
+	
 	
 	@expose static throws = Datex.Assertion.get(null, function (fun:Function, type?:any){
 		try {

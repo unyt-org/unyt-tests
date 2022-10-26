@@ -11,6 +11,7 @@ import { Datex } from "../../unyt_core/datex.js";
 import { expose, Logger, LOG_LEVEL, scope } from "../../unyt_core/datex_all.js";
 import { logger } from "./utils.js";
 import { TestGroup, TEST_CASE_STATE } from "./test_case.js";
+Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
 const tests = new Map();
 let TestManager = class TestManager {

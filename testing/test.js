@@ -11,27 +11,28 @@ import { f } from "../../unyt_core/datex.js";
 import { Datex, remote, scope, to } from "../../unyt_core/datex.js";
 import { Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
+Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
 let ENV = {};
 let init_resolve;
 const initialized = new Promise(resolve => init_resolve = resolve);
 async function init() {
     await Datex.Supranet.connect(ENV.endpoint, undefined, false);
-    await TestManager.to(ENV.test_manager).registerContext(ENV.context);
+    await TestManager.registerContext(ENV.context);
     init_resolve();
 }
 async function registerTests(group_name, value) {
     await initialized;
-    await TestManager.to(ENV.test_manager).registerTestGroup(ENV.context, group_name);
+    await TestManager.registerTestGroup(ENV.context, group_name);
     const test_case_promises = [];
     for (let k of Object.getOwnPropertyNames(value)) {
         const test_case_data = value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
         if (test_case_data)
-            test_case_promises.push(TestManager.to(ENV.test_manager).bindTestCase(ENV.context, group_name, test_case_data[0], test_case_data[1], test_case_data[2]));
+            test_case_promises.push(TestManager.bindTestCase(ENV.context, group_name, test_case_data[0], test_case_data[1], test_case_data[2]));
     }
     await Promise.all(test_case_promises);
-    await TestManager.to(ENV.test_manager).testGroupLoaded(ENV.context, group_name);
-    setTimeout(() => TestManager.to(ENV.test_manager).contextLoaded(ENV.context), 1000);
+    await TestManager.testGroupLoaded(ENV.context, group_name);
+    setTimeout(() => TestManager.contextLoaded(ENV.context), 1000);
 }
 if (globalThis.self) {
     self.onmessage = async (e) => {

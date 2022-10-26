@@ -17,7 +17,7 @@ export class WorkerTestRunner extends TestRunner {
         });
         setTimeout(() => {
             worker.postMessage(env);
-        }, 1000);
+        }, 500);
         if (worker.on) {
             worker.on('error', err => {
                 logger.error `Error in ${path}:

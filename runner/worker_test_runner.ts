@@ -29,7 +29,7 @@ export class WorkerTestRunner extends TestRunner {
 		// timeout required?!
 		setTimeout(()=>{
 			worker.postMessage(env);
-		}, 1000);
+		}, 500);
 
 		// @ts-ignore
 		if (worker.on) {

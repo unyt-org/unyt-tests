@@ -29,6 +29,11 @@ let Assert = class Assert {
             return true;
         return `${Datex.Runtime.valueToDatexString(value)} is not false`;
     }, false);
+    static hasProperty = Datex.Assertion.get(null, function (value, key) {
+        if (key in value)
+            return true;
+        return `${Datex.Runtime.valueToDatexString(value)} does not have property ${Datex.Runtime.valueToDatexString(key)}`;
+    }, false);
     static throws = Datex.Assertion.get(null, function (fun, type) {
         try {
             fun();
@@ -71,6 +76,10 @@ __decorate([
     expose,
     __metadata("design:type", Object)
 ], Assert, "false", void 0);
+__decorate([
+    expose,
+    __metadata("design:type", Object)
+], Assert, "hasProperty", void 0);
 __decorate([
     expose,
     __metadata("design:type", Object)
