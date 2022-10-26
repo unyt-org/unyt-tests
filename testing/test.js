@@ -9,10 +9,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { f } from "../../unyt_core/datex.js";
 import { Datex, remote, scope, to } from "../../unyt_core/datex.js";
-import { Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
+import { Disjunction, Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
+const manager_out = new Disjunction();
 let ENV = {};
 let init_resolve;
 const initialized = new Promise(resolve => init_resolve = resolve);
@@ -38,6 +39,7 @@ if (globalThis.self) {
     self.onmessage = async (e) => {
         ENV.endpoint = f(e.data.endpoint);
         ENV.test_manager = f(e.data.test_manager ?? Datex.LOCAL_ENDPOINT);
+        manager_out.add(ENV.test_manager);
         ENV.context = new URL(e.data.context);
         init();
     };
@@ -45,6 +47,7 @@ if (globalThis.self) {
 else if (globalThis.process) {
     ENV.endpoint = f(process.env.endpoint);
     ENV.test_manager = f((process.env.test_manager ?? Datex.LOCAL_ENDPOINT));
+    manager_out.add(ENV.test_manager);
     ENV.context = new URL(process.env.context);
     init();
 }
@@ -108,5 +111,5 @@ __decorate([
 ], TestManager, "bindTestCase", null);
 TestManager = __decorate([
     scope,
-    to(ENV.test_manager)
+    to(manager_out)
 ], TestManager);

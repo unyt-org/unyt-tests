@@ -11,12 +11,13 @@
 // @ts-ignore
 import { f } from "../../unyt_core/datex.js";
 import { Datex, remote, scope, to } from "../../unyt_core/datex.js";
-import { Endpoint, endpoint_name, Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
+import { Disjunction, Endpoint, endpoint_name, Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
 import { handleDecoratorArgs, context_kind, context_meta_getter, context_meta_setter, context_name, METADATA } from "./legacy_decorators.js";
 
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
 
+const manager_out = new Disjunction<Endpoint>();
 
 let ENV: {
     endpoint?: Endpoint,
@@ -65,6 +66,7 @@ if (globalThis.self) {
     self.onmessage = async (e) => {
         ENV.endpoint = f(e.data.endpoint);
         ENV.test_manager = f(e.data.test_manager??Datex.LOCAL_ENDPOINT);
+        manager_out.add(ENV.test_manager);
         ENV.context = new URL(e.data.context);
         init();
     }    
@@ -73,6 +75,7 @@ if (globalThis.self) {
 else if (globalThis.process) {
     ENV.endpoint = f(<endpoint_name>process.env.endpoint);
     ENV.test_manager = f(<endpoint_name>(process.env.test_manager??Datex.LOCAL_ENDPOINT));
+    manager_out.add(ENV.test_manager);
     ENV.context = new URL(process.env.context);
     init();
 }
@@ -115,7 +118,7 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
 }
 
 // TestManager in main process
-@scope @to(ENV.test_manager) class TestManager {
+@scope @to(manager_out) class TestManager {
 
     @remote static registerContext(context:URL):Promise<void>{return null}
     @remote static contextLoaded(context:URL):Promise<void>{return null}
