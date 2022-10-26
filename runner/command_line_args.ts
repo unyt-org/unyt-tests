@@ -9,7 +9,7 @@ type command_line_options = {
 	reporttype: string,
 	reportfile: string,
 	watch: boolean,
-	path: string,
+	paths: string[],
 	color: 'rgb'|'simple'|'none',
 	verbose: boolean
 }
@@ -19,7 +19,7 @@ const optionDefinitions = [
 	{ name: 'reportfile', alias: 'r', type: String},
 	{ name: 'watch', alias: 'w', type: Boolean },
 	{ name: 'color', alias: 'c', type: String, defaultValue: 'rgb' },
-	{ name: 'path', alias: 'p', type: String, defaultOption: true },
+	{ name: 'paths', aliass: 'p', type: String, multiple: true, defaultOption: true },
 	{ name: 'verbose', alias: 'v', type: Boolean, defaultOption: false }
 
 ]
@@ -36,7 +36,7 @@ export function getCommandLineOptions(): command_line_options {
 	}[options.color];
 
 	// path
-	if (!options.path) exitWithError("Please provide a directory or a test file ('run.js mytest.test.js')")
+	if (!options.paths) exitWithError("Please provide a directory or a test file ('run.js mytest.test.js')")
 	// report type
 	if (options.reporttype && !SUPPORTED_REPORT_TYPES.includes(options.reporttype)) exitWithError("Unsupported report type: " + options.reporttype)
 	

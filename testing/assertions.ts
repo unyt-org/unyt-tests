@@ -15,12 +15,12 @@ import { Datex, expose, scope } from "../../unyt_core/datex.js";
 
 	@expose static true = Datex.Assertion.get(null, function (value:any){
 		if (value === true) return true;
-		return `${Datex.Runtime.valueToDatexString(value)} is not true`;
+		return `evaluation is ${Datex.Runtime.valueToDatexString(value)} expected true`;
 	}, false /* is sync function*/)
 
 	@expose static false = Datex.Assertion.get(null, function (value:any){
 		if (value === false) return true;
-		return `${Datex.Runtime.valueToDatexString(value)} is not false`;
+		return `evaluation is ${Datex.Runtime.valueToDatexString(value)} expected false`;
 	}, false /* is sync function*/)
 
 	

@@ -23,7 +23,7 @@ export function getUrlFromPath(path:string, is_dir = false){
 
 
 
-export async function getTestFiles(path:string) {
+export async function getTestFiles(path:string){
 	// get directory
 	if (await isPathDirectory(path)) {
 		const dir = getUrlFromPath(path, true)

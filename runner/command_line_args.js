@@ -8,7 +8,7 @@ const optionDefinitions = [
     { name: 'reportfile', alias: 'r', type: String },
     { name: 'watch', alias: 'w', type: Boolean },
     { name: 'color', alias: 'c', type: String, defaultValue: 'rgb' },
-    { name: 'path', alias: 'p', type: String, defaultOption: true },
+    { name: 'paths', aliass: 'p', type: String, multiple: true, defaultOption: true },
     { name: 'verbose', alias: 'v', type: Boolean, defaultOption: false }
 ];
 export function getCommandLineOptions() {
@@ -21,7 +21,7 @@ export function getCommandLineOptions() {
             simple: LOG_FORMATTING.COLOR_4_BIT,
             none: LOG_FORMATTING.PLAINTEXT
         }[options.color];
-    if (!options.path)
+    if (!options.paths)
         exitWithError("Please provide a directory or a test file ('run.js mytest.test.js')");
     if (options.reporttype && !SUPPORTED_REPORT_TYPES.includes(options.reporttype))
         exitWithError("Unsupported report type: " + options.reporttype);
