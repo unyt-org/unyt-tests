@@ -10,14 +10,18 @@ if (options.verbose) {
     Logger.development_log_level = LOG_LEVEL.VERBOSE;
     Datex.MessageLogger.enable();
 }
-let files;
-try {
-    files = await getTestFiles(options.path);
-}
-catch (e) {
-    console.log(e);
-    logger.error("Invalid path for test files: " + getUrlFromPath(options.path, true));
-    process.exit();
+let files = [];
+console.log(options.paths);
+for (let path of options.paths) {
+    try {
+        for (let file of await getTestFiles(path))
+            files.push(file);
+    }
+    catch (e) {
+        console.log(e);
+        logger.error("Invalid path for test files: " + getUrlFromPath(path, true));
+        process.exit();
+    }
 }
 printHeaderInfo(files);
 await TestManager.init();

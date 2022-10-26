@@ -22,12 +22,12 @@ let Assert = class Assert {
     static true = Datex.Assertion.get(null, function (value) {
         if (value === true)
             return true;
-        return `${Datex.Runtime.valueToDatexString(value)} is not true`;
+        return `evaluation is ${Datex.Runtime.valueToDatexString(value)} expected true`;
     }, false);
     static false = Datex.Assertion.get(null, function (value) {
         if (value === false)
             return true;
-        return `${Datex.Runtime.valueToDatexString(value)} is not false`;
+        return `evaluation is ${Datex.Runtime.valueToDatexString(value)} expected false`;
     }, false);
     static hasProperty = Datex.Assertion.get(null, function (value, key) {
         if (key in value)

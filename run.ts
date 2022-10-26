@@ -18,16 +18,20 @@ if (options.verbose) {
 //console.log(options);
 
 // get files (command line argument path)
-let files:URL[];
+let files:URL[] = [];
+console.log(options.paths)
+for (let path of options.paths) {
+	try {
+		for (let file of await getTestFiles(path))
+			files.push(file);
+	}
+	catch (e){
+		console.log(e);
+		logger.error("Invalid path for test files: " + getUrlFromPath(path, true))
+		process.exit();
+	}
+}
 
-try {
-	files = await getTestFiles(options.path);
-}
-catch (e){
-	console.log(e);
-	logger.error("Invalid path for test files: " + getUrlFromPath(options.path, true))
-	process.exit();
-}
 
 printHeaderInfo(files);
 
