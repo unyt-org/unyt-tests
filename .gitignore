@@ -1,3 +1,7 @@
 node_modules
 .datex
 .datex-cache
+**/*.js
+*.js
+**/*.js.map
+*.js.map
