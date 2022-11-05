@@ -1,15 +1,17 @@
 import { TestRunner } from "./test_runner.js";
 import { Datex } from "../../unyt_core/datex.js";
-import { logger } from "./utils.js";
+import { client_type, logger } from "./utils.js";
 
 const Worker = globalThis.Worker ? globalThis.Worker : (await import('node:worker_threads')).Worker;
 /**
  * Runs tests in node.js/browser Worker environment
  */
 
+const loaded = w => new Promise(r => w.addEventListener("message", r, { once: true }));
+
 export class WorkerTestRunner extends TestRunner {
 
-	protected handleLoad(path: URL, endpoint:Datex.Endpoint) {
+	protected async handleLoad(path: URL, endpoint:Datex.Endpoint) {
 		const env = {
 			test_manager: Datex.Runtime.endpoint.toString(), 
 			endpoint: endpoint.toString(),
@@ -25,23 +27,20 @@ export class WorkerTestRunner extends TestRunner {
 			stderr:true,
 		});
 
+		if (client_type == "browser") {
+			await loaded(worker); // worker emits "loaded" message
+			worker.postMessage(env); // set env data
+		}
 		
-		// timeout required?!
-		setTimeout(()=>{
-			worker.postMessage(env);
-		}, 500);
-
-		// @ts-ignore
-		if (worker.on) {
-		// @ts-ignore
+		else {
+			// @ts-ignore
 			worker.on('error', err => {
-				logger.error `Error in ${path}:
-${err}
-				`
+				logger.error `Error in ${path}:\n${err}`
 				process.exit(1);
 			});
 		}
-		}
+
+	}
 
 	
 }

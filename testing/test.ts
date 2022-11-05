@@ -69,7 +69,8 @@ if (globalThis.self) {
         manager_out.add(ENV.test_manager);
         ENV.context = new URL(e.data.context);
         init();
-    }    
+    }
+    self.postMessage("loaded"); // inform parent that this worker is loaded and can receive messages
 }
 // nodejs process.env
 else if (globalThis.process) {
@@ -82,6 +83,7 @@ else if (globalThis.process) {
 else {
     throw new Error("Cannot get environment data for test worker")
 }
+
 
 
 const TEST_CASE_DATA = Symbol("test_case");

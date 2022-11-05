@@ -68,7 +68,7 @@ export function printHeaderInfo(files:URL[]){
 #color(white)║    Test Files:${' '.repeat(BOX_WIDTH-17)}║`
 
 	for (let file of files) {
-		logger.plain `#color(white)║       #color(grey)${file.toString().padEnd(BOX_WIDTH-9, ' ')}#color(white)║`
+		logger.plain `#color(white)║       #color(grey)${file.toString().replace("file://","").padEnd(BOX_WIDTH-9, ' ')}#color(white)║`
 	}
 
 	logger.plain `#color(white)║${' '.repeat(BOX_WIDTH-2)}║`

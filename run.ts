@@ -19,7 +19,6 @@ if (options.verbose) {
 
 // get files (command line argument path)
 let files:URL[] = [];
-console.log(options.paths)
 for (let path of options.paths) {
 	try {
 		for (let file of await getTestFiles(path))
