@@ -22,14 +22,16 @@ const manager_out = new Disjunction<Endpoint>();
 let ENV: {
     endpoint?: Endpoint,
     test_manager?: Endpoint,
-    context?: URL
+    context?: URL,
+    supranet_connect?:boolean
 } = {};
 
 let init_resolve:Function;
 const initialized= new Promise(resolve=>init_resolve=resolve);
 
 async function init(){
-    await Datex.Supranet.connect(ENV.endpoint, undefined, false);
+    if (ENV.supranet_connect) await Datex.Supranet.connect(ENV.endpoint, undefined, false);
+    else await Datex.Supranet.init(ENV.endpoint, undefined, false);
     await TestManager.registerContext(ENV.context);
     init_resolve(); // init ready
 }
@@ -68,6 +70,7 @@ if (globalThis.self) {
         ENV.test_manager = f(e.data.test_manager??Datex.LOCAL_ENDPOINT);
         manager_out.add(ENV.test_manager);
         ENV.context = new URL(e.data.context);
+        ENV.supranet_connect = e.data.supranet_connect == "true";
         init();
     }
     self.postMessage("loaded"); // inform parent that this worker is loaded and can receive messages
@@ -78,6 +81,7 @@ else if (globalThis.process) {
     ENV.test_manager = f(<endpoint_name>(process.env.test_manager??Datex.LOCAL_ENDPOINT));
     manager_out.add(ENV.test_manager);
     ENV.context = new URL(process.env.context);
+    ENV.supranet_connect = process.env.supranet_connect == "true";
     init();
 }
 else {

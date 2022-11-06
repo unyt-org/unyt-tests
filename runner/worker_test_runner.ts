@@ -1,6 +1,7 @@
 import { TestRunner } from "./test_runner.js";
 import { Datex } from "../../unyt_core/datex.js";
 import { client_type, logger } from "./utils.js";
+import { TestManager } from "./test_manager.js";
 
 const Worker = globalThis.Worker ? globalThis.Worker : (await import('node:worker_threads')).Worker;
 /**
@@ -15,7 +16,8 @@ export class WorkerTestRunner extends TestRunner {
 		const env = {
 			test_manager: Datex.Runtime.endpoint.toString(), 
 			endpoint: endpoint.toString(),
-			context: path.toString()
+			context: path.toString(),
+			supranet_connect: TestManager.SUPRANET_CONNECT.toString()
 		};
 
 		const worker = new Worker(path, {

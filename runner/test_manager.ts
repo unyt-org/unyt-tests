@@ -17,13 +17,17 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     // options
     static RUN_TESTS_IMMEDIATELY = false;
 
+    static SUPRANET_CONNECT = false;
+
     // init local endpoint
     static async init() {
-        await Datex.Supranet.connect(undefined, undefined, false);
+        this.SUPRANET_CONNECT = false;
+        await Datex.Supranet.init(undefined, undefined, false);
     }
 
     // supranet connection
     static async connect() {
+        this.SUPRANET_CONNECT = true;
         await Datex.Supranet.connect(undefined, undefined, false);
     }
 

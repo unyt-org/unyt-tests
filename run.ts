@@ -31,12 +31,11 @@ for (let path of options.paths) {
 	}
 }
 
+await TestManager.connect();
 
 printHeaderInfo(files);
 
 // run
-
-await TestManager.init();
 
 TestManager.RUN_TESTS_IMMEDIATELY = true; // start running tests when they are available
 new WorkerTestRunner(files).loadAll(); // start up test environments for all test files
