@@ -229,6 +229,8 @@ const NOBOX = {
         // create new test case
         else {
 			logger.debug("new test case ?",name);
+			// set big timeout (actual timeout is handled on test endpoint)
+			if (func instanceof Datex.Function) func.datex_timeout = 10*60*1000; // 10min 
 			let test_case = new TestCase(name, params, func);
             this.test_cases.set(name, test_case)
             return test_case;

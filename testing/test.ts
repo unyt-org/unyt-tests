@@ -11,11 +11,14 @@
 // @ts-ignore
 import { f } from "../../unyt_core/datex.js";
 import { Datex, remote, scope, to } from "../../unyt_core/datex.js";
-import { Disjunction, Endpoint, endpoint_name, Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
-import { handleDecoratorArgs, context_kind, context_meta_getter, context_meta_setter, context_name, METADATA } from "./legacy_decorators.js";
+import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
+import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
+import type { context_kind, context_meta_getter, context_meta_setter, context_name } from "./legacy_decorators.js";
 
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
+
+const DEFAULT_TIMEOUT = 60; // 60s
 
 const manager_out = new Disjunction<Endpoint>();
 
@@ -45,13 +48,21 @@ async function registerTests(group_name:string, value:Function){
 
     for (let k of Object.getOwnPropertyNames(value)) {
         const test_case_data = <[test_name:string, params:any[][], value:(...args: any) => void | Promise<void>]>value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
-                    
+        const timeout = value[METADATA]?.[TIMEOUT]?.public?.[k] ?? DEFAULT_TIMEOUT;
+        if (test_case_data) console.log("timeout", timeout,test_case_data[0])
         if (test_case_data) test_case_promises.push(TestManager.bindTestCase(
             ENV.context,
             group_name, 
             test_case_data[0],
             test_case_data[1],
-            test_case_data[2]//Datex.Function.get(null, test_case_data[2]) // convert to DATEX function
+            function (){
+                // either timeout rejects or test case resolves first
+                return Promise.race([
+                    test_case_data[2](),
+                    new Promise<any>((_,reject)=>setTimeout(()=>reject(new AssertionError("Exceeded maximum allowed execution time of "+timeout+"s")), timeout*1000)) // reject after timeout
+                ])
+            }
+            
         ));
     }
 
@@ -65,7 +76,8 @@ async function registerTests(group_name:string, value:Function){
 
 // wait for message (web worker)
 if (globalThis.self) {
-    self.onmessage = async (e) => {
+    // @ts-ignore worker context
+    self.onmessage = (e) => {
         ENV.endpoint = f(e.data.endpoint);
         ENV.test_manager = f(e.data.test_manager??Datex.LOCAL_ENDPOINT);
         manager_out.add(ENV.test_manager);
@@ -73,14 +85,20 @@ if (globalThis.self) {
         ENV.supranet_connect = e.data.supranet_connect == "true";
         init();
     }
+    // @ts-ignore worker context
     self.postMessage("loaded"); // inform parent that this worker is loaded and can receive messages
 }
 // nodejs process.env
+// @ts-ignore nodejs
 else if (globalThis.process) {
+    // @ts-ignore nodejs
     ENV.endpoint = f(<endpoint_name>process.env.endpoint);
+    // @ts-ignore nodejs
     ENV.test_manager = f(<endpoint_name>(process.env.test_manager??Datex.LOCAL_ENDPOINT));
     manager_out.add(ENV.test_manager);
+    // @ts-ignore nodejs
     ENV.context = new URL(process.env.context);
+    // @ts-ignore nodejs
     ENV.supranet_connect = process.env.supranet_connect == "true";
     init();
 }
@@ -91,17 +109,18 @@ else {
 
 
 const TEST_CASE_DATA = Symbol("test_case");
+const TIMEOUT = Symbol("timeout");
 
 
 // @Test (legacy decorators support)
-export function Test(name:string)
-export function Test(...test_paramters:any[][])
-export function Test(...test_paramters:any[])
-export function Test(target: Function)
-export function Test(target: Function, options)
-export function Test(...args) {return handleDecoratorArgs(args, _Test)}
+export function Test(name:string):any
+export function Test(...test_parameters:any[][]):any
+export function Test(...test_paramters:any[]):any
+export function Test(target: Function):any
+export function Test(target: Function, options:any):any
+export function Test(...args:any[]) {return handleDecoratorArgs(args, _Test)}
 
-function _Test(value:any, name:context_name, kind:context_kind, is_static:boolean, is_private:boolean, setMetadata:context_meta_setter, getMetadata:context_meta_getter, params:[string?]|any[][] = []) {
+function _Test(value:any, name:context_name, kind:context_kind, _is_static:boolean, _is_private:boolean, setMetadata:context_meta_setter, getMetadata:context_meta_getter, params:[string?]|any[][] = []) {
 
     if (kind == 'class') {
         // use class name as default test group name
@@ -123,13 +142,35 @@ function _Test(value:any, name:context_name, kind:context_kind, is_static:boolea
 
 }
 
+
+// @Timeout (legacy decorators support) - DEFAULT Timeout is 60s, MAX depends on test manager timeout, currently 10min
+export function Timeout(seconds:number):any
+export function Timeout(target: Function):any
+export function Timeout(target: Function, options:any):any
+export function Timeout(...args:any[]) {return handleDecoratorArgs(args, _Timeout)}
+
+function _Timeout(value:any, name:context_name, kind:context_kind, _is_static:boolean, _is_private:boolean, setMetadata:context_meta_setter, getMetadata:context_meta_getter, params:[number]) {
+
+   if (kind == 'method') {
+        if (!params || typeof params[0] != "number")  throw new Error("The @Timeout requires a timeout value (in seconds) as a parameter"); 
+        
+        const test_name = name;
+        setMetadata(TIMEOUT, params[0]);
+    }
+
+    else {
+        throw new Error("The @Timeout decorator can only be used on test case methods");
+    }
+
+}
+
 // TestManager in main process
 @scope @to(manager_out) class TestManager {
 
-    @remote static registerContext(context:URL):Promise<void>{return null}
-    @remote static contextLoaded(context:URL):Promise<void>{return null}
-    @remote static registerTestGroup(context:URL, group_name:string):Promise<void>{return null}
-    @remote static testGroupLoaded(context:URL, group_name:string):Promise<void>{return null}
-    @remote static bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>):Promise<void>{return null}
+    @remote static registerContext(context:URL|void):Promise<URL|void>{return Promise.resolve(undefined)}
+    @remote static contextLoaded(context:URL|void):Promise<URL|void>{return Promise.resolve(undefined)}
+    @remote static registerTestGroup(context:URL, group_name:string):Promise<void>{return Promise.resolve(undefined)}
+    @remote static testGroupLoaded(context:URL, group_name:string):Promise<void>{return Promise.resolve(undefined)}
+    @remote static bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>):Promise<void>{return Promise.resolve(undefined)}
 
 }

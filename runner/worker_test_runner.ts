@@ -25,8 +25,8 @@ export class WorkerTestRunner extends TestRunner {
 			env, // node.js env
 
 			// disable to show stdout 
-			stdout:true, 
-			stderr:true,
+			// stdout:true, 
+			// stderr:true,
 		});
 
 		if (client_type == "browser") {
