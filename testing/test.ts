@@ -49,7 +49,6 @@ async function registerTests(group_name:string, value:Function){
     for (let k of Object.getOwnPropertyNames(value)) {
         const test_case_data = <[test_name:string, params:any[][], value:(...args: any) => void | Promise<void>]>value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
         const timeout = value[METADATA]?.[TIMEOUT]?.public?.[k] ?? DEFAULT_TIMEOUT;
-        if (test_case_data) console.log("timeout", timeout,test_case_data[0])
         if (test_case_data) test_case_promises.push(TestManager.bindTestCase(
             ENV.context,
             group_name, 
