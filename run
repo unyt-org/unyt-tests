@@ -3,5 +3,10 @@
 SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
+# reload deno cache
+rm $SCRIPTPATH/deno.lock
+deno cache --reload $SCRIPTPATH/testing/test.ts
 deno cache --reload $SCRIPTPATH/run.ts
+
+# run tests
 deno run --allow-read --allow-write --allow-env --allow-net $SCRIPTPATH/run.ts $*

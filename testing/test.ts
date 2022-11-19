@@ -45,23 +45,30 @@ async function registerTests(group_name:string, value:Function){
 
     const test_case_promises:Promise<void>[] = []
 
-    for (const k of Object.getOwnPropertyNames(value)) {
-        const test_case_data = <[test_name:string, params:any[][], value:(...args: any) => void | Promise<void>]>value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
-        const timeout = value[METADATA]?.[TIMEOUT]?.public?.[k] ?? DEFAULT_TIMEOUT;
-        if (test_case_data) test_case_promises.push(TestManager.bindTestCase(
+    for (const k of Object.getOwnPropertyNames(value.prototype)) {
+        if (k == "constructor") continue;
+        const test_case_data = <[test_name:string, params:any[][], value:(...args: any) => void | Promise<void>]>value.prototype[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
+
+        // @ts-ignore handle constructor
+        if (test_case_data == Object) continue;
+
+        const timeout = value.prototype[METADATA]?.[TIMEOUT]?.public?.[k] ?? DEFAULT_TIMEOUT;
+        if (test_case_data) {
+            test_case_promises.push(TestManager.bindTestCase(
             ENV.context!,
             group_name, 
             test_case_data[0],
             test_case_data[1],
-            function (){
+            Datex.Pointer.proxifyValue(Datex.Function.createFromJSFunction(function (...args:any[]){
                 // either timeout rejects or test case resolves first
                 return Promise.race([
-                    test_case_data[2](),
+                    test_case_data[2](...args),
                     new Promise<any>((_,reject)=>setTimeout(()=>reject(new AssertionError("Exceeded maximum allowed execution time of "+timeout+"s")), timeout*1000)) // reject after timeout
                 ])
-            }
+            }, undefined, undefined, undefined, undefined, undefined, Datex.Function.getFunctionParams(test_case_data[2])))
             
         ));
+        }
     }
 
     await Promise.all(test_case_promises);

@@ -2,9 +2,38 @@
 
 This test library supports `.ts`, `.js` and `.dx` test files.
 
-## Write Tests for TS/JS
+## Write Tests for TypeScript and JavaScript
+
+Example
+```typescript
+
+import { Assert } from "unyt_tests/testing/assertions.ts";
+import { Test, Timeout } from "unyt_tests/testing/test.ts"
 
 
+@Test class DatexJSONObjects {
+
+	@Test(
+		[1, 2, 3],
+		[4, 4, 8],
+		[6, 2, 8]
+	) 
+	sumIsCorrect(a:number, b:number, sum:number){
+		Assert.equalsStrict(a+b, sum)
+	}
+
+	@Test
+	testWithOutParameters(){
+		Assert.true(true)
+	}
+
+	@Test
+	@Timeout(10*60) 
+	longDurationTest(){
+		// test can take up to 10 minutes (10*60s) to complete
+	}
+}
+```
 
 
 ## Run tests in the command line
