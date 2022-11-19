@@ -1,11 +1,10 @@
-import { Datex } from '../unyt_core/datex.js';
-import { Logger, LOG_FORMATTING, LOG_LEVEL } from '../unyt_core/datex_all.js';
-import { JUnitReportGenerator } from './reports/junit.js';
-import { ChromiumTestRunner } from './runner/chromium_test_runner.js';
-import { getCommandLineOptions } from './runner/command_line_args.js';
-import { WorkerTestRunner } from "./runner/worker_test_runner.js";
-import { TestManager } from './runner/test_manager.js';
-import { getTestFiles, getUrlFromPath, logger, printHeaderInfo } from './runner/utils.js';
+import { Datex } from '../unyt_core/datex.ts';
+import { Logger, LOG_LEVEL } from '../unyt_core/datex_all.ts';
+import { JUnitReportGenerator } from './reports/junit.ts';
+import { getCommandLineOptions } from './runner/command_line_args.ts';
+import { WorkerTestRunner } from "./runner/worker_test_runner.ts";
+import { TestManager } from './runner/test_manager.ts';
+import { getTestFiles, getUrlFromPath, logger, printHeaderInfo } from './runner/utils.ts';
 
 const options = getCommandLineOptions();
 
@@ -15,19 +14,19 @@ if (options.verbose) {
 	Datex.MessageLogger.enable(); // log all datex messages
 }
 
-//console.log(options);
+// console.log(options);
 
 // get files (command line argument path)
-let files:URL[] = [];
-for (let path of options.paths) {
+const files:URL[] = [];
+for (const path of options.paths) {
 	try {
-		for (let file of await getTestFiles(path))
+		for (const file of await getTestFiles(path))
 			files.push(file);
 	}
 	catch (e){
 		console.log(e);
 		logger.error("Invalid path for test files: " + getUrlFromPath(path, true))
-		process.exit();
+		Deno.exit();
 	}
 }
 

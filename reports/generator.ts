@@ -1,5 +1,4 @@
-import fs from 'fs';
-import { logger } from '../runner/utils.js';
+import { logger } from '../runner/utils.ts';
 
 export abstract class ReportGenerator {
 
@@ -9,7 +8,7 @@ export abstract class ReportGenerator {
 
 	generateReport(outputfile:URL) {
 		const output = this.generateReportText();
-		fs.writeFileSync(outputfile, output)
+		Deno.writeTextFileSync(outputfile, output)
 		logger.info("Test Report exported to " + outputfile.toString().replaceAll("file://",""))
 	}
 

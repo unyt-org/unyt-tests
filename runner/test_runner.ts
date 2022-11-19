@@ -1,6 +1,7 @@
-import { Datex } from "../../unyt_core/datex.js";
-import { logger, getUrlFromPath } from "./utils.js";
+import { Datex } from "../../unyt_core/datex.ts";
+import { logger, getUrlFromPath } from "./utils.ts";
 
+// deno-lint-ignore no-namespace
 export namespace TestRunner {
 
 	export interface Options {
@@ -23,7 +24,7 @@ export abstract class TestRunner {
 	}
 
 	public loadAll(){
-		for (let path of this.file_paths) this.load(path);
+		for (const path of this.file_paths) this.load(path);
 	}
 
 	public load(path:URL){
@@ -31,11 +32,11 @@ export abstract class TestRunner {
 		logger.debug `running ${path} on ${endpoint}`;
 		try {
 			this.handleLoad(path, endpoint);
-		} catch (e) {
+		} catch  {
 			logger.error("Error starting test environment")
 		}
 	}
 
-	protected abstract handleLoad(path:URL, endpoint:Datex.Endpoint)
+	protected abstract handleLoad(path:URL, endpoint:Datex.Endpoint):void
 	
 }

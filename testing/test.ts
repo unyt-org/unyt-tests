@@ -9,11 +9,11 @@
  */
 
 // @ts-ignore
-import { f } from "../../unyt_core/datex.js";
-import { Datex, remote, scope, to } from "../../unyt_core/datex.js";
-import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL } from "../../unyt_core/datex_all.js";
-import { handleDecoratorArgs, METADATA } from "./legacy_decorators.js";
-import type { context_kind, context_meta_getter, context_meta_setter, context_name } from "./legacy_decorators.js";
+import { f } from "../../unyt_core/datex.ts";
+import { Datex, remote, scope, to } from "../../unyt_core/datex.ts";
+import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL } from "../../unyt_core/datex_all.ts";
+import { handleDecoratorArgs, METADATA } from "./legacy_decorators.ts";
+import type { context_kind, context_meta_getter, context_meta_setter, context_name } from "./legacy_decorators.ts";
 
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
@@ -22,7 +22,7 @@ const DEFAULT_TIMEOUT = 60; // 60s
 
 const manager_out = new Disjunction<Endpoint>();
 
-let ENV: {
+const ENV: {
     endpoint?: Endpoint,
     test_manager?: Endpoint,
     context?: URL,
@@ -42,15 +42,15 @@ async function init(){
 async function registerTests(group_name:string, value:Function){
     await initialized; // wait for init
 
-    await TestManager.registerTestGroup(ENV.context, group_name);
+    await TestManager.registerTestGroup(ENV.context!, group_name);
 
     const test_case_promises:Promise<void>[] = []
 
-    for (let k of Object.getOwnPropertyNames(value)) {
+    for (const k of Object.getOwnPropertyNames(value)) {
         const test_case_data = <[test_name:string, params:any[][], value:(...args: any) => void | Promise<void>]>value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
         const timeout = value[METADATA]?.[TIMEOUT]?.public?.[k] ?? DEFAULT_TIMEOUT;
         if (test_case_data) test_case_promises.push(TestManager.bindTestCase(
-            ENV.context,
+            ENV.context!,
             group_name, 
             test_case_data[0],
             test_case_data[1],
@@ -67,7 +67,7 @@ async function registerTests(group_name:string, value:Function){
 
     await Promise.all(test_case_promises);
 
-    await TestManager.testGroupLoaded(ENV.context, group_name);
+    await TestManager.testGroupLoaded(ENV.context!, group_name);
     setTimeout(()=>TestManager.contextLoaded(ENV.context), 1000)
 }
 

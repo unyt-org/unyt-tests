@@ -1,7 +1,7 @@
-import { sync, property, constructor, Datex } from "../../unyt_core/datex.js";
-import { AssertionError } from "../../unyt_core/datex_all.js";
-import { logger } from "./utils.js";
-import { BOX_WIDTH } from "./constants.js";
+import { sync, property, constructor, Datex } from "../../unyt_core/datex.ts";
+import { AssertionError } from "../../unyt_core/datex_all.ts";
+import { logger } from "./utils.ts";
+import { BOX_WIDTH } from "./constants.ts";
 
 export enum TEST_CASE_STATE {
 	INITIALIZED,
@@ -52,9 +52,9 @@ const NOBOX = {
 
 @sync export class TestCase {
 
-	func:(...args:any)=>void|Promise<void>
+	func?:(...args:any)=>void|Promise<void>
 
-	@property name:string
+	@property name!:string
 	@property state = TEST_CASE_STATE.INITIALIZED;
 	@property params:any[][] = []
 	@property results:[boolean, number, any?][] = [] // successful, run time, error message
@@ -62,10 +62,10 @@ const NOBOX = {
 	@property tests_count = 0;
 	@property failed_tests = 0;
 
-	@property duration:number
+	@property duration?:number
 
-	#finish_resolve:Function
-	#await_finished:Promise<void>
+	#finish_resolve?:Function
+	#await_finished?:Promise<void>
 
 	get formatted_name(){
 		if (!this.name.includes(" ")) {
@@ -81,7 +81,7 @@ const NOBOX = {
 	}
 	
 	// test is definitely executed after this promise
-	get await_finished():Promise<void>{
+	get await_finished():Promise<void>|void{
 
 		// already finished
 		if (this.state == TEST_CASE_STATE.SUCCESSFUL || this.state == TEST_CASE_STATE.FAILED) return;
@@ -106,9 +106,11 @@ const NOBOX = {
 
 		let had_failure = false;
 
-		for (let variation of (this.params.length == 0 ? [[]] : this.params)) {
+		for (const variation of (this.params.length == 0 ? [[]] : this.params)) {
 			logger.debug("running test ?", this.name);
 			const t0 = performance.now(); // TODO execution time without DATEX transmission duration?
+
+			if (!this.func) throw new Error("Test Case cannot be executed")
 
 			try {
 				await this.func(...variation);
@@ -134,6 +136,7 @@ const NOBOX = {
 		if (this.#finish_resolve) this.#finish_resolve();
 	}
 
+	// deno-lint-ignore no-unused-vars
 	constructor(name:string, params:any[][], func:(...args:any)=>void|Promise<void>) {}
 	@constructor construct(name:string, params:any[][], func:(...args:any)=>void|Promise<void>) {
 		this.name = name;
@@ -145,7 +148,7 @@ const NOBOX = {
 		this.tests_count = this.params.length == 0 ? 1 : this.params.length;
 		this.failed_tests = 0;
 		this.func = func;
-		this.#await_finished = null;
+		this.#await_finished = undefined;
 		this.state = TEST_CASE_STATE.INITIALIZED;
 	}
 }
@@ -154,8 +157,8 @@ const NOBOX = {
 
 @sync export class TestGroup {
 
-	@property name: string
-	@property context: URL
+	@property name!: string
+	@property context!: URL
 	@property test_cases:Map<string,TestCase> = new Map()
 
 	@property get state() {
@@ -163,7 +166,7 @@ const NOBOX = {
 			has_running = false,
 			has_initialized = false;
 
-		for (let test of this.test_cases.values()) {
+		for (const test of this.test_cases.values()) {
 			if (test.state == TEST_CASE_STATE.FAILED) has_failed = true;
 			else if (test.state == TEST_CASE_STATE.RUNNING) has_running = true;
 			else if (test.state == TEST_CASE_STATE.INITIALIZED) has_initialized = true;
@@ -178,21 +181,21 @@ const NOBOX = {
 
 	get duration() {
 		let duration = 0;
-		for (let test of this.test_cases.values()) duration += test.duration;
+		for (const test of this.test_cases.values()) duration += test.duration ?? 0;
 		return duration;
 	}
 
 	// total number of failures (can be multiple for each test case)
 	get failed_tests() {
 		let failed_tests = 0;
-		for (let test of this.test_cases.values()) failed_tests += test.failed_tests;
+		for (const test of this.test_cases.values()) failed_tests += test.failed_tests;
 		return failed_tests;
 	}
 
 	// total number of tests (can be more than number of test cases)
 	get test_count() {
 		let count = 0;
-		for (let test of this.test_cases.values()) count += test.tests_count;
+		for (const test of this.test_cases.values()) count += test.tests_count;
 		return count;
 	}
 
@@ -222,16 +225,16 @@ const NOBOX = {
 
 		if (this.test_cases.has(name)) {
             logger.debug("update existing test case ?",name);
-			let test_case = this.test_cases.get(name);
-            test_case.reset(params, func);
-			return test_case;
+			const test_case = this.test_cases.get(name);
+            test_case!.reset(params, func);
+			return test_case!;
         }
         // create new test case
         else {
 			logger.debug("new test case ?",name);
 			// set big timeout (actual timeout is handled on test endpoint)
 			if (func instanceof Datex.Function) func.datex_timeout = 10*60*1000; // 10min 
-			let test_case = new TestCase(name, params, func);
+			const test_case = new TestCase(name, params, func);
             this.test_cases.set(name, test_case)
             return test_case;
         }
@@ -279,12 +282,12 @@ const NOBOX = {
 		logger.plain `#color(white)${box.VERTICAL}${' '.repeat(leftCellWidth+8)}${box.VERTICAL}${' '.repeat(rightCellWidth+3)}${box.VERTICAL}`
 
 		// test cases
-		for (let test of this.test_cases.values()) {
-			const dur = `${test.duration.toFixed(2)}ms`;
+		for (const test of this.test_cases.values()) {
+			const dur = `${test.duration?.toFixed(2)??'?'}ms`;
 
 			let right = 0;
-			for (let result of test.results) right += Number(result[0]);
-			let success_rate = `${right}/${test.results.length}`;
+			for (const result of test.results) right += Number(result[0]);
+			const success_rate = `${right}/${test.results.length}`;
 
 			if (test.state == TEST_CASE_STATE.SUCCESSFUL) logger.plain `#color(white)${box.VERTICAL}#color(green)   ✓ ${test.formatted_name.padEnd(normalTextWidth, " ")} #color(13,93,47)${dur.padStart(runtimeWidth, " ")}  ${box.VERTICAL} #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ${box.VERTICAL}`
 			else if (test.state == TEST_CASE_STATE.FAILED) {

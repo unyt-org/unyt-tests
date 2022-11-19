@@ -1,31 +1,32 @@
-import { Datex } from '../../unyt_core/datex.js';
-import { Logger, LOG_FORMATTING } from '../../unyt_core/datex_all.js';
-import { BOX_WIDTH, SUPPORTED_EXTENSIONS, VERSION } from "./constants.js";
-
+import { Datex } from '../../unyt_core/datex.ts';
+import { Logger, LOG_FORMATTING } from '../../unyt_core/datex_all.ts';
+import { BOX_WIDTH, SUPPORTED_EXTENSIONS, VERSION } from "./constants.ts";
 
 export const logger = new Logger("Test Runner", true, LOG_FORMATTING.PLAINTEXT);
 
-export const client_type = globalThis.process?.release?.name ? 'node' : 'browser'
+export function isPathDirectory(path:string){
+	if (!globalThis.Deno) throw new Error("Extended file utilities are not supported");
 
-const {lstat, readdir} = client_type == 'node' ? (await import('node:fs/promises')) : {lstat:null, readdir:null};
-
-export async function isPathDirectory(path:string){
-	if (!lstat) throw new Error("Extended file utilities are not supported");
-	const url = getUrlFromPath(path);
-	return (await lstat(url)).isDirectory();
+	try {
+		Deno.readDirSync(path);
+		return true;
+	}
+	catch {
+		return false;
+	}
 }
 
 export function getUrlFromPath(path:string, is_dir = false){
 	if (is_dir && !path.endsWith('/')) path += '/';
 	if (path.startsWith("./")) path = path.slice(2);
-	return new URL(path.startsWith("/") ? path : process.cwd()+'/'+path, "file://");
+	return new URL(path.startsWith("/") ? path : Deno.cwd()+'/'+path, "file://");
 }
 
 
 
 export async function getTestFiles(path:string){
 	// get directory
-	if (await isPathDirectory(path)) {
+	if (isPathDirectory(path)) {
 		const dir = getUrlFromPath(path, true)
 		return await getTestFilesInDirectory(dir);
 	}
@@ -34,27 +35,27 @@ export async function getTestFiles(path:string){
 }
 
 export async function getTestFilesInDirectory(dirPath:URL) {
-	const files = [];
+	const files:URL[] = [];
 	await searchDirectory(dirPath, files);
 	return files;
 }
-export async function searchDirectory(dirPath:URL, files:URL[]) {
-	if (!lstat) throw new Error("Extended file utilities are not supported");
+async function searchDirectory(dirPath:URL, files:URL[]) {
+	if (!globalThis.Deno) throw new Error("Extended file utilities are not supported");
 
-	await Promise.all((await readdir(dirPath)).map(async (entity) => {
-	  const path = new URL(entity, dirPath);
-	  // directory
-	  if ((await lstat(path)).isDirectory()) await searchDirectory(new URL(entity+'/', dirPath), files);
-	  // .test file?
-	  else {
-		for (let ext of SUPPORTED_EXTENSIONS) {
-			if (entity.endsWith(ext)) {
-				files.push(path);
-				break;
+	for await (const entry of Deno.readDir(dirPath)) {
+		// directory
+		if (entry.isDirectory) await searchDirectory(new URL(entry.name+'/', dirPath), files);
+	  	// .test file?
+		else {
+			const path = new URL(entry.name, dirPath);
+			for (const ext of SUPPORTED_EXTENSIONS) {
+				if (entry.name.endsWith(ext)) {
+					files.push(path);
+					break;
+				}
 			}
 		}
-	  }
-	}))
+	}
   
 }
 
@@ -67,7 +68,7 @@ export function printHeaderInfo(files:URL[]){
 #color(white)║    Endpoint: #color(green)${Datex.Runtime.endpoint.toString().padEnd(BOX_WIDTH-16, ' ')}║
 #color(white)║    Test Files:${' '.repeat(BOX_WIDTH-17)}║`
 
-	for (let file of files) {
+	for (const file of files) {
 		logger.plain `#color(white)║       #color(grey)${file.toString().replace("file://","").padEnd(BOX_WIDTH-9, ' ')}#color(white)║`
 	}
 
@@ -77,5 +78,5 @@ export function printHeaderInfo(files:URL[]){
 
 export function exitWithError(message:string) {
 	logger.plain('#color(red)'+message);
-	process.exit(1);
+	Deno.exit(1);
 }

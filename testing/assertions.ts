@@ -1,4 +1,4 @@
-import { Datex, expose, scope } from "../../unyt_core/datex.js";
+import { Datex, expose, scope } from "../../unyt_core/datex.ts";
 
 
 @scope("assert") export class Assert {

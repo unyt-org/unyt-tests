@@ -1,9 +1,7 @@
 import { TestRunner } from "./test_runner.js";
 import { Datex } from "../../unyt_core/datex.js";
 
-// @ts-ignore
 import puppeteer from "puppeteer"
-// @ts-ignore
 import express from "express"
 
 /**
