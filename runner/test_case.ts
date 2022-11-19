@@ -1,5 +1,5 @@
-import { sync, property, constructor, Datex } from "../../unyt_core/datex.ts";
-import { AssertionError } from "../../unyt_core/datex_all.ts";
+import { sync, property, constructor, Datex } from "unyt_core";
+import { AssertionError } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
 import { BOX_WIDTH } from "./constants.ts";
 

@@ -1,5 +1,5 @@
 import { TestRunner } from "./test_runner.js";
-import { Datex } from "../../unyt_core/datex.js";
+import { Datex } from "unyt_core";
 
 import puppeteer from "puppeteer"
 import express from "express"

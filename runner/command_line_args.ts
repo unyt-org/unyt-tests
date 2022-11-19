@@ -1,5 +1,5 @@
 import { parse } from "https://deno.land/std@0.165.0/flags/mod.ts"
-import { LOG_FORMATTING } from '../../unyt_core/datex_all.ts';
+import { LOG_FORMATTING } from 'unyt_core/datex_all.ts';
 import { logger } from './utils.ts';
 import { SUPPORTED_REPORT_TYPES } from './constants.ts';
 import { exitWithError } from './utils.ts';
@@ -43,15 +43,6 @@ const optionDefinitions = {
 	}
 } as const;
 
-[
-	{ name: 'reporttype', type: String, defaultValue:'junit' },
-	{ name: 'reportfile', alias: 'r', type: String},
-	{ name: 'watch', alias: 'w', type: Boolean },
-	{ name: 'color', alias: 'c', type: String, defaultValue: 'rgb' },
-	{ name: 'paths', aliass: 'p', type: String, multiple: true, defaultOption: true },
-	{ name: 'verbose', alias: 'v', type: Boolean, defaultOption: false }
-
-]
 
 export function getCommandLineOptions(): command_line_options {
 	const options = parse(Deno.args, optionDefinitions)

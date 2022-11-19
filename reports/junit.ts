@@ -1,4 +1,4 @@
-import { Datex } from "../../unyt_core/datex.ts";
+import { Datex } from "unyt_core";
 import { TestGroup } from "../runner/test_case.ts";
 import { TestManager } from "../runner/test_manager.ts";
 import { ReportGenerator } from "./generator.ts";

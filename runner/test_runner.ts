@@ -1,4 +1,4 @@
-import { Datex } from "../../unyt_core/datex.ts";
+import { Datex } from "unyt_core";
 import { logger, getUrlFromPath } from "./utils.ts";
 
 // deno-lint-ignore no-namespace

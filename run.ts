@@ -1,5 +1,5 @@
-import { Datex } from '../unyt_core/datex.ts';
-import { Logger, LOG_LEVEL } from '../unyt_core/datex_all.ts';
+import { Datex } from "unyt_core";
+import { Logger, LOG_LEVEL } from 'unyt_core/datex_all.ts';
 import { JUnitReportGenerator } from './reports/junit.ts';
 import { getCommandLineOptions } from './runner/command_line_args.ts';
 import { WorkerTestRunner } from "./runner/worker_test_runner.ts";

@@ -1,5 +1,5 @@
 import { TestRunner } from "./test_runner.ts";
-import { Datex } from "../../unyt_core/datex.ts";
+import { Datex } from "unyt_core";
 import { TestManager } from "./test_manager.ts";
 
 /**

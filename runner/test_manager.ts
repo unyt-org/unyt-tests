@@ -1,5 +1,5 @@
-import { Datex } from "../../unyt_core/datex.ts";
-import { expose, Logger, LOG_LEVEL, scope } from "../../unyt_core/datex_all.ts";
+import { Datex } from "unyt_core";
+import { expose, Logger, LOG_LEVEL, scope } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
 import { TestGroup, TEST_CASE_STATE } from "./test_case.ts";
 

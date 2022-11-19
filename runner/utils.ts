@@ -1,5 +1,5 @@
-import { Datex } from '../../unyt_core/datex.ts';
-import { Logger, LOG_FORMATTING } from '../../unyt_core/datex_all.ts';
+import { Datex } from "unyt_core";
+import { Logger, LOG_FORMATTING } from 'unyt_core/datex_all.ts';
 import { BOX_WIDTH, SUPPORTED_EXTENSIONS, VERSION } from "./constants.ts";
 
 export const logger = new Logger("Test Runner", true, LOG_FORMATTING.PLAINTEXT);
