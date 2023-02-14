@@ -55,3 +55,6 @@ Multiple Test files
  * `--reportfile`: Set the path for the report output. When this option is set, a report is generated after all tests are finished.
  * `--watch` or `-w`: TODO
  * `--verbose` or `-v`: verbose output for debugging purposes
+
+## Development
+Development follows the flow of unyt_core and uix
