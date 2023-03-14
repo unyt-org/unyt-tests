@@ -1,7 +1,7 @@
 import { Datex } from "unyt_core";
-import { TestGroup } from "../runner/test_case.ts";
-import { TestManager } from "../runner/test_manager.ts";
-import { ReportGenerator } from "./generator.ts";
+import { TestGroup } from "../core/test_case.ts";
+import { TestManager } from "../core/test_manager.ts";
+import { ReportGenerator } from "../core/report_generator.ts";
 
 function sanitizeArg(string:string) {
 	return string.replace(/"/g,'&quot;')

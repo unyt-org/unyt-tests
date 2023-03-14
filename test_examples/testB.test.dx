@@ -1,0 +1,36 @@
+use Assert from #public;
+
+extension test (
+	 
+	"DATEX Test Group 1": (
+
+		"first test": assert (
+			1 == 1
+		),
+
+		"second test": assert (
+			val x = <Set> [1,2];
+			assert (x matches <Set>)()
+		),
+
+		"third test": assert (
+			yeet "Todo implement"
+		),
+
+		"fourth test": assert (
+			val obj = {x: 42};
+			assert (obj.x == 42)()
+		),
+
+		"fifth test": assert (
+			val obj = {x: 42};
+			#std.printf Assert.hasProperty;
+			Assert.hasProperty(obj, "x")
+		),
+
+		"sixth test": assert (
+			1 == 2
+		)
+
+	)
+);

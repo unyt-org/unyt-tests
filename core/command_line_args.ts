@@ -29,7 +29,7 @@ const optionDefinitions = {
 	
 	default: {
 		reporttype: 'junit',
-		c: 'rgb'
+		c: 'rgb',
 	},
 	
 	collect: ["p"],
@@ -48,6 +48,9 @@ export function getCommandLineOptions(): command_line_options {
 	const options = parse(Deno.args, optionDefinitions)
 
 	options.paths = [...default_paths, ...options.paths];
+
+	// default current directory
+	if (!options.paths.length) options.paths = ["."]
 
 	// logger color type
 	if (!['rgb','simple','none'].includes(options.color)) exitWithError("Unsupported color type: " + options.color)

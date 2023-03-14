@@ -1,7 +1,4 @@
 #!/bin/bash
 
-# clear cache
-deno cache --reload https://cdn.unyt.org/unyt_tests/run.ts
-
 # run tests
-deno run --allow-read --allow-write --allow-env --allow-net --import-map https://cdn.unyt.org/unyt_tests/importmap.json https://cdn.unyt.org/unyt_tests/run.ts $*
+deno run -A --reload --import-map https://cdn.unyt.org/unyt_tests/importmap.json https://cdn.unyt.org/unyt_tests/run.ts $*

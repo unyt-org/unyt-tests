@@ -2,6 +2,7 @@ import { Datex } from "unyt_core";
 import { expose, Logger, LOG_LEVEL, scope } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
 import { TestGroup, TEST_CASE_STATE } from "./test_case.ts";
+import { TestRunner } from "./test_runner.ts";
 
 Logger.development_log_level = LOG_LEVEL.WARNING; // log level for debug logs (suppresses most)
 Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (log all)
@@ -11,7 +12,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
 const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
 
 
-@scope export class TestManager {
+@endpoint export class TestManager {
 
     // options
     static RUN_TESTS_IMMEDIATELY = false;
@@ -21,13 +22,22 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     // init local endpoint
     static async init() {
         this.SUPRANET_CONNECT = false;
-        await Datex.Supranet.init(undefined, undefined, false);
+        await Datex.Supranet.init(undefined, false);
     }
 
     // supranet connection
     static async connect() {
         this.SUPRANET_CONNECT = true;
-        await Datex.Supranet.connect(undefined, undefined, false);
+        await Datex.Supranet.connect(undefined, false);
+    }
+
+    // load matching test contexts for files
+    static loadFiles(files:URL[]) {
+        for (const file of files) {
+            const runner = TestRunner.getRunnerForFile(file)
+            if (runner) runner.load(file)
+            else throw "could not find a test runner for " + file;
+        }
     }
 
 
@@ -95,21 +105,21 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
 
 
     // register context
-    @expose protected static registerContext(context:URL){
+    @property static registerContext(context:URL){
         logger.debug("registered context: " + context)
         tests.set(context.toString(), new Map());
     }
 
     // register test group
-    @expose protected static registerTestGroup(context:URL, group_name:string){
+    @property static registerTestGroup(context:URL, group_name:string){
         if (!tests.has(context.toString())) tests.set(context.toString(), new Map());
         
-        logger.debug("new test group ? ?",group_name, context);
-        tests.get(context.toString())!.set(group_name, new TestGroup(group_name, context));
+        logger.debug("new test group", group_name, context, datex.meta.sender.toString());
+        tests.get(context.toString())!.set(group_name, new TestGroup(group_name, context, datex.meta.sender));
     }
 
     // all test cases for the group are loaded, can be run
-    @expose protected static async testGroupLoaded(context:URL, group_name:string){
+    @property static async testGroupLoaded(context:URL, group_name:string){
         // let context_string = context.toString();
         // if (!tests.has(context_string)) logger.error("loading finished for unknown context " + context);
         // else if (!tests.get(context_string).has(group_name)) logger.error("loading finished for unknown test group " + group_name);
@@ -121,7 +131,7 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     }
 
     // all test groups for a context are loaded
-    @expose protected static contextLoaded(context:URL){
+    @property static contextLoaded(context:URL){
         const context_string = context.toString();
         logger.debug("context loaded: " + context_string);
 
@@ -132,7 +142,7 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     }
 
     // add test data for an existing test group
-    @expose protected static bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>){
+    @property static async bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>){
         const context_string = context.toString();
 
         // context not registered
@@ -149,7 +159,8 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
 
         // bind to group
         else {
-            const test_case = tests.get(context_string)!.get(group_name)!.setTestCase(test_name, params, func);
+            const group = tests.get(context_string)!.get(group_name)!;
+            const test_case = await group.setTestCase(test_name, params, func);
             // start running test case immediately in the background
             if (this.RUN_TESTS_IMMEDIATELY) test_case.run()
         }

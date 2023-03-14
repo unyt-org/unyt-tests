@@ -14,8 +14,12 @@ import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL } from "unyt_c
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.ts";
 import type { context_kind, context_meta_getter, context_meta_setter, context_name } from "./legacy_decorators.ts";
 
+export * from "./assertions.ts";
+
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
+
+const logger = new Logger("Test", true);
 
 const DEFAULT_TIMEOUT = 60; // 60s
 
@@ -31,11 +35,31 @@ const ENV: {
 let init_resolve:Function;
 const initialized= new Promise(resolve=>init_resolve=resolve);
 
-async function init(){
-    if (ENV.supranet_connect) await Datex.Supranet.connect(ENV.endpoint, undefined, false);
-    else await Datex.Supranet.init(ENV.endpoint, undefined, false);
+export async function init(env?:typeof ENV){
+    if (env) Object.assign(ENV, env);
+
+    if (ENV.test_manager) manager_out.add(ENV.test_manager);
+    if (ENV.supranet_connect) await Datex.Supranet.connect(ENV.endpoint, false);
+    else await Datex.Supranet.init(ENV.endpoint, false);
     await TestManager.registerContext(ENV.context);
     init_resolve(); // init ready
+}
+
+
+/** handle init depending on context */
+
+// @ts-ignore nodejs
+if (globalThis.process) {
+    import("./init_node.ts")
+}
+
+// service worker
+else if (globalThis.self) {
+    import("./init_worker.ts")
+}
+
+else {
+    logger.warn("could not automatically initialize test environment, manual initialization required")
 }
 
 async function registerTests(group_name:string, value:Function){
@@ -79,37 +103,6 @@ async function registerTests(group_name:string, value:Function){
 
 
 
-// wait for message (web worker)
-if (globalThis.self) {
-    // @ts-ignore worker context
-    self.onmessage = (e) => {
-        ENV.endpoint = f(e.data.endpoint);
-        ENV.test_manager = f(e.data.test_manager??Datex.LOCAL_ENDPOINT);
-        manager_out.add(ENV.test_manager);
-        ENV.context = new URL(e.data.context);
-        ENV.supranet_connect = e.data.supranet_connect == "true";
-        init();
-    }
-    // @ts-ignore worker context
-    self.postMessage("loaded"); // inform parent that this worker is loaded and can receive messages
-}
-// nodejs process.env
-// @ts-ignore nodejs
-else if (globalThis.process) {
-    // @ts-ignore nodejs
-    ENV.endpoint = f(<endpoint_name>process.env.endpoint);
-    // @ts-ignore nodejs
-    ENV.test_manager = f(<endpoint_name>(process.env.test_manager??Datex.LOCAL_ENDPOINT));
-    manager_out.add(ENV.test_manager);
-    // @ts-ignore nodejs
-    ENV.context = new URL(process.env.context);
-    // @ts-ignore nodejs
-    ENV.supranet_connect = process.env.supranet_connect == "true";
-    init();
-}
-else {
-    throw new Error("Cannot get environment data for test worker")
-}
 
 
 
@@ -124,6 +117,13 @@ export function Test(...test_paramters:any[]):any
 export function Test(target: Function):any
 export function Test(target: Function, options:any):any
 export function Test(...args:any[]) {return handleDecoratorArgs(args, _Test)}
+
+// @ts-ignore global Test
+// globalThis.Test = Test;
+// const GlobalTest = Test;
+// declare global {
+//     const Test: typeof GlobalTest
+// }
 
 function _Test(value:any, name:context_name, kind:context_kind, _is_static:boolean, _is_private:boolean, setMetadata:context_meta_setter, getMetadata:context_meta_getter, params:[string?]|any[][] = []) {
 
@@ -152,7 +152,7 @@ function _Test(value:any, name:context_name, kind:context_kind, _is_static:boole
 export function Timeout(seconds:number):any
 export function Timeout(target: Function):any
 export function Timeout(target: Function, options:any):any
-export function Timeout(...args:any[]) {return handleDecoratorArgs(args, _Timeout)}
+export function Timeout(...args:any[]) {return handleDecoratorArgs(args, <any>_Timeout)}
 
 function _Timeout(value:any, name:context_name, kind:context_kind, _is_static:boolean, _is_private:boolean, setMetadata:context_meta_setter, getMetadata:context_meta_getter, params:[number]) {
 

@@ -12,10 +12,13 @@
 type decorator_target = {[key: string]: any} & Partial<Record<any, never>> & Partial<Record<keyof Array<any>, never>>;
 type decorator_target_optional_params = decorator_target | Function; // only working for static methods!
 
+// @ts-ignore
 if (!Symbol['metadata']) Symbol['metadata'] = Symbol('metadata');
+// @ts-ignore
 export const METADATA:symbol = Symbol['metadata'];
 
 const __metadataPrivate = new WeakMap();
+// @ts-ignore
 const createObjectWithPrototype = (obj:object, key:any) => Object.hasOwnProperty.call(obj, key) ? obj[key] : Object.create(obj[key] || Object.prototype);
 
 
@@ -71,39 +74,54 @@ function createMetadataSetter(target:Function, name:string, is_constructor = fal
             throw new TypeError("the key must be a Symbol");
         }
 
+        // @ts-ignore
         target[METADATA] = createObjectWithPrototype(target, METADATA);
+        // @ts-ignore
         target[METADATA][key] = createObjectWithPrototype(target[METADATA], key);
+        // @ts-ignore
         target[METADATA][key].public = createObjectWithPrototype(target[METADATA][key], "public");
         
+        // @ts-ignore
         if (!Object.hasOwnProperty.call(target[METADATA][key], "private")) {
+            // @ts-ignore
             Object.defineProperty(target[METADATA][key], "private", {
                 get() {
+                    // @ts-ignore
                     return Object.values(__metadataPrivate.get(target[METADATA][key]) || {}).concat(Object.getPrototypeOf(target[METADATA][key])?.private || []);
                 }
             });
         }
         // constructor
         if (is_constructor) {
+            // @ts-ignore
             target[METADATA][key].constructor = value;
         } 
         // private
         else if (is_private) {
+            // @ts-ignore
             if (!__metadataPrivate.has(target[METADATA][key])) {
+                // @ts-ignore
                 __metadataPrivate.set(target[METADATA][key], {});
             }
+            // @ts-ignore
             __metadataPrivate.get(target[METADATA][key])[name] = value;
         } 
         // public
         else {
+            // @ts-ignore
             target[METADATA][key].public[name] = value;
         } 
     }
 }
 function createMetadataGetter(target:Function, name:string, is_constructor = false, is_private=false) {
     return (key:symbol) => {
+        // @ts-ignore
         if (target[METADATA] && target[METADATA][key]) {
+            // @ts-ignore
             if (is_constructor) return target[METADATA][key]["constructor"]?.[name];
+            // @ts-ignore
             else if (is_private) return (__metadataPrivate.has(target[METADATA][key]) ? __metadataPrivate.get(target[METADATA][key])?.[name] : undefined)  
+            // @ts-ignore
             else return target[METADATA][key].public?.[name] 
         }
     }

@@ -160,6 +160,7 @@ const NOBOX = {
 	@property name!: string
 	@property context!: URL
 	@property test_cases:Map<string,TestCase> = new Map()
+	@property endpoint?: Datex.Endpoint
 
 	@property get state() {
 		let has_failed = false,
@@ -212,10 +213,11 @@ const NOBOX = {
 	}
 
 
-	constructor(name:string, context:URL){}
-	@constructor construc(name:string, context:URL){
+	constructor(name:string, context:URL, endpoint?:Datex.Endpoint){}
+	@constructor construct(name:string, context:URL, endpoint?:Datex.Endpoint){
 		this.name = name;
 		this.context = context;
+		this.endpoint = endpoint;
 	}
 
 
@@ -224,14 +226,14 @@ const NOBOX = {
 		// test case already exists
 
 		if (this.test_cases.has(name)) {
-            logger.debug("update existing test case ?",name);
+            logger.debug("update existing test case",name);
 			const test_case = this.test_cases.get(name);
             test_case!.reset(params, func);
 			return test_case!;
         }
         // create new test case
         else {
-			logger.debug("new test case ?",name);
+			logger.debug("new test case",name);
 			// set big timeout (actual timeout is handled on test endpoint)
 			if (func instanceof Datex.Function) func.datex_timeout = 10*60*1000; // 10min 
 			const test_case = new TestCase(name, params, func);
@@ -242,7 +244,7 @@ const NOBOX = {
 	}
 
 	@property async run(){
-        for (let test of this.test_cases.values()) test.run();
+        for (const test of this.test_cases.values()) test.run();
 		await this.finishAllTests();
     }
 
@@ -277,6 +279,7 @@ const NOBOX = {
 		// top box with file name
 		logger.plain `#color(white)${box.VERTICAL}${' '.repeat(innerWidth)}${box.VERTICAL}`
 		logger.plain `#color(white)${box.VERTICAL}   File: #color(grey)${this.context.toString().replace("file://","").padEnd(innerWidth-9)}#color(white)${box.VERTICAL}`
+		if (this.endpoint) logger.plain `#color(white)${box.VERTICAL}   Endpoint: #color(grey)${this.endpoint.toString().padEnd(innerWidth-13)}#color(white)${box.VERTICAL}`
 		logger.plain `#color(white)${box.VERTICAL}${' '.repeat(innerWidth)}${box.VERTICAL}`
 		logger.plain `#color(white)${box.T_RIGHT}${box.HORIZONTAL.repeat(leftCellWidth+8)}${box.T_DOWN}${box.HORIZONTAL.repeat(rightCellWidth+3)}${box.T_LEFT}`
 		logger.plain `#color(white)${box.VERTICAL}${' '.repeat(leftCellWidth+8)}${box.VERTICAL}${' '.repeat(rightCellWidth+3)}${box.VERTICAL}`
@@ -293,11 +296,11 @@ const NOBOX = {
 			else if (test.state == TEST_CASE_STATE.FAILED) {
 			
 				logger.plain  `#color(white)${box.VERTICAL}#color(red)   ☓ ${test.formatted_name.padEnd(normalTextWidth, " ")} #color(103,22,38)${dur.padStart(runtimeWidth, " ")}  ${box.VERTICAL} #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ${box.VERTICAL}`
-				for (let result of test.results) {
+				for (const result of test.results) {
 					if (result[0] == false) {
 						if (result[2] instanceof AssertionError) logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${this.#trimText(result[2].message, leftCellWidth-1)}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
 						else if (result[2] instanceof Error) logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${this.#trimText(result[2].constructor.name + ': ' + result[2].message, leftCellWidth-1)}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
-						else logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${Datex.Runtime.valueToDatexString(result[2],false).padEnd(leftCellWidth-1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
+						else logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${(typeof result[2] == "string" ? result[2] : Datex.Runtime.valueToDatexString(result[2],false)).padEnd(leftCellWidth-1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
 					}
 				}
 			}

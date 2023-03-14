@@ -1,4 +1,4 @@
-import { logger } from '../runner/utils.ts';
+import { logger } from './utils.ts';
 
 export abstract class ReportGenerator {
 

@@ -1,14 +1,16 @@
-import { TestRunner } from "./test_runner.ts";
+import { TestRunner } from "../core/test_runner.ts";
 import { Datex } from "unyt_core";
-import { TestManager } from "./test_manager.ts";
+import { TestManager } from "../core/test_manager.ts";
 
 /**
- * Runs tests in node.js/browser Worker environment
+ * Runs TypeScript/JavaScript tests in deno/browser worker context
  */
 
-const loaded = (w:Worker) => new Promise(r => w.addEventListener("message", r, { once: true }));
 
-export class WorkerTestRunner extends TestRunner {
+@TestRunner.Config({
+	fileExtensions: ['test.ts', 'test.js', 'test.tsx', 'test.jsx']
+})
+export class TypescriptTestRunner extends TestRunner {
 
 	protected async handleLoad(path: URL, endpoint:Datex.Endpoint) {
 		const env = {
@@ -24,7 +26,8 @@ export class WorkerTestRunner extends TestRunner {
 
 		await loaded(worker); // worker emits "loaded" message
 		worker.postMessage(env); // set env data
-		
 	}
 	
 }
+
+const loaded = (w:Worker) => new Promise(r => w.addEventListener("message", r, { once: true }));
