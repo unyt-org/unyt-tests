@@ -20,7 +20,7 @@ export class DatexTestRunner extends TestRunner {
 
 		// execute DATEX Script with 'test' extension
 		const tests = (<any> await Datex.Runtime.executeDatexLocally(dx, [], {
-			required_extensions: ['test']
+			required_extensions: ['test'],
 		}, context))?.test;
 
 		TestManager.registerContext(context)

@@ -5,7 +5,7 @@ import { Test, Assert } from "unyt_tests";
 	@Test(
 		[1,2], 
 		[2,4], 
-		[3,7]
+		[3,6]
 	) 
 	firstTest(a:number, b:number) {
 		Assert.equals(a*2, b)

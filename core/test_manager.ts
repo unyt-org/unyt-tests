@@ -114,8 +114,8 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     @property static registerTestGroup(context:URL, group_name:string){
         if (!tests.has(context.toString())) tests.set(context.toString(), new Map());
         
-        logger.debug("new test group", group_name, context, datex.meta.sender.toString());
-        tests.get(context.toString())!.set(group_name, new TestGroup(group_name, context, datex.meta.sender));
+        logger.debug("new test group", group_name, context, (datex.meta??datex.localMeta).sender.toString());
+        tests.get(context.toString())!.set(group_name, new TestGroup(group_name, context, (datex.meta??datex.localMeta).sender));
     }
 
     // all test cases for the group are loaded, can be run

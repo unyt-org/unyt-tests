@@ -24,7 +24,6 @@ extension test (
 
 		"fifth test": assert (
 			val obj = {x: 42};
-			#std.printf Assert.hasProperty;
 			Assert.hasProperty(obj, "x")
 		),
 
