@@ -11,13 +11,12 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
 // context -> (group name -> group)
 const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
 
-
+// Analyzation
 @endpoint export class TestManager {
 
-    // options
-    static RUN_TESTS_IMMEDIATELY = false;
-
     static SUPRANET_CONNECT = false;
+
+    private static contextsToRunImmediately = new Set<string>();
 
     // init local endpoint
     static async init() {
@@ -28,16 +27,32 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     // supranet connection
     static async connect() {
         this.SUPRANET_CONNECT = true;
-        await Datex.Supranet.connect(undefined, false);
+        try {
+            await Datex.Supranet.connect(undefined, false);
+        } catch {
+            logger.warn("could not connect to the supranet");
+        }
     }
 
     // load matching test contexts for files
-    static loadFiles(files:URL[]) {
+    static loadTests(files:URL[], loadOptions: TestRunner.loadOptions = TestRunner.getDefaultLoadOptions(), runImmediately = false) {
+
+        if (!loadOptions.initLive && runImmediately) throw new Error("Cannot load test files with runImmediately enabled, but loadOptions.initLive disabled. Tests can only be executed when the test contexts are initialized.")
+
+        const promises = [];
         for (const file of files) {
             const runner = TestRunner.getRunnerForFile(file)
-            if (runner) runner.load(file)
+            if (runner) {
+                if (runImmediately) this.contextsToRunImmediately.add(file.toString())
+                promises.push(runner.load(file, loadOptions))
+            }
             else throw "could not find a test runner for " + file;
         }
+
+        // tests are already executed in the background, wait until finished
+        if (runImmediately) return this.finishTestExecutions(files)
+        // resolve when all test files are loaded
+        else return Promise.all(promises);
     }
 
 
@@ -66,21 +81,40 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
         return tests.get(context.toString())?.values() ?? [];
     }
 
+    /**
+     * run all test for the provided contexts
+     * automatic live initialization of required test contexts if not yet loaded
+     * @param contexts context path array
+     * @returns Promise that resolves when all tests were executed
+     */
+    static async runTests(contexts:URL[]) {
+        const promises = [];
+        for (const context of contexts) {
+            // make sure context gets live
+            TestRunner.getRunnerForFile(context)!.initLive(context, false);
+            await this.waitForContextLoad(context);
+            for (const [_name, group] of tests.get(context.toString())!) {
+                promises.push(group.run())
+            }
+        }
+        return Promise.all(promises);
+    }
+
 
     // wait for all contexts and run all tests
-    static finishContexts(contexts:URL[]) {
+    static finishTestExecutions(contexts:URL[]) {
         // wait until all contexts loaded and tests run
-        return Promise.all(contexts.map(context => this.finishContext(context)))
+        return Promise.all(contexts.map(context => this.finishTestExecution(context)))
     }
 
     // wait for context and run all tests
-    static async finishContext(context:URL) {
-
+    static async finishTestExecution(context:URL) {
         await this.waitForContextLoad(context);
-        logger.debug("finished context " + context)
+
+        logger.debug("loaded context " + context)
 
         // all tests groups in context
-        for (const group of tests.get(context.toString())?.values()??[]) {
+        for (const group of tests.get(context.toString())!.values()) {
             await group.finishAllTests();
         }
     }
@@ -90,6 +124,10 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
 
     // returns promise that resolve when a context is fully loaded
     private static waitForContextLoad(context:URL) {
+        return this.getContextPromise(context);
+    }
+
+    private static getContextPromise(context: URL) {
         const context_string = context.toString();
 
         if (this.context_promises.has(context_string)) return this.context_promises.get(context_string);
@@ -107,6 +145,7 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     // register context
     @property static registerContext(context:URL){
         logger.debug("registered context: " + context)
+        this.getContextPromise(context); // make sure a context promise exists
         tests.set(context.toString(), new Map());
     }
 
@@ -117,6 +156,35 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
         logger.debug("new test group", group_name, context, (datex.meta??datex.localMeta).sender.toString());
         tests.get(context.toString())!.set(group_name, new TestGroup(group_name, context, (datex.meta??datex.localMeta).sender));
     }
+
+    /**
+     * Register a dicovered test case for a specific group, with a parameter set
+     * To make the test case executable by the TestManager, TestManager.bindTestCase has to be used
+     * (in this case, registerTestCase does not have to be called)
+     * @param context 
+     * @param group_name 
+     * @param test_name 
+     * @param params parameter set
+     */
+    @property static registerTestCase(context:URL, group_name:string, test_name:string, params:any[][]){
+        const context_string = context.toString();
+
+         // context not registered
+         if (!tests.has(context_string)) {
+            logger.error("trying to bind test case to unknown context " + context);
+            return;
+        }
+
+        // group not registered
+        else if (!tests.get(context_string)!.has(group_name)) {
+            logger.error("trying to bind test case to unknown test group " + group_name);
+            return;
+        }
+
+        const group = tests.get(context_string)!.get(group_name)!;
+        group.setTestCase(test_name, params);
+    }
+
 
     // all test cases for the group are loaded, can be run
     @property static async testGroupLoaded(context:URL, group_name:string){
@@ -142,7 +210,7 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     }
 
     // add test data for an existing test group
-    @property static async bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>){
+    @property static bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>){
         const context_string = context.toString();
 
         // context not registered
@@ -160,9 +228,9 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
         // bind to group
         else {
             const group = tests.get(context_string)!.get(group_name)!;
-            const test_case = await group.setTestCase(test_name, params, func);
+            const test_case = group.setTestCase(test_name, params, func);
             // start running test case immediately in the background
-            if (this.RUN_TESTS_IMMEDIATELY) test_case.run()
+            if (this.contextsToRunImmediately.has(context_string)) test_case.run()
         }
 
     }

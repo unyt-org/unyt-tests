@@ -98,7 +98,8 @@ async function registerTests(group_name:string, value:Function){
     await Promise.all(test_case_promises);
 
     await TestManager.testGroupLoaded(ENV.context!, group_name);
-    setTimeout(()=>TestManager.contextLoaded(ENV.context), 1000)
+    await TestManager.contextLoaded(ENV.context);
+    // setTimeout(()=>TestManager.contextLoaded(ENV.context), 1000)
 }
 
 
@@ -175,6 +176,7 @@ function _Timeout(value:any, name:context_name, kind:context_kind, _is_static:bo
     @remote static registerContext(context:URL|void):Promise<URL|void>{return Promise.resolve(undefined)}
     @remote static contextLoaded(context:URL|void):Promise<URL|void>{return Promise.resolve(undefined)}
     @remote static registerTestGroup(context:URL, group_name:string):Promise<void>{return Promise.resolve(undefined)}
+    @remote static registerTestCase(context:URL, group_name:string, test_name:string, params:any[][]):Promise<void>{return Promise.resolve(undefined)}
     @remote static testGroupLoaded(context:URL, group_name:string):Promise<void>{return Promise.resolve(undefined)}
     @remote static bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>):Promise<void>{return Promise.resolve(undefined)}
 

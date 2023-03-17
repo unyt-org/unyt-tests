@@ -4,6 +4,7 @@ import { TestManager } from "../core/test_manager.ts";
 
 // make sure assertions are loaded
 import "../testing/assertions.ts";
+import { Path } from "unyt_node/path.ts";
 
 /**
  * Runs DATEX Script tests
@@ -15,8 +16,19 @@ import "../testing/assertions.ts";
 })
 export class DatexTestRunner extends TestRunner {
 
+	protected handleLoadStatic(context: URL) {
+		// TODO: datex static analyizer, currently just loading context
+		return this.loadScript(context, false);
+	}	
+
 	protected async handleLoad(context: URL, _endpoint:Datex.Endpoint) {
-		const dx = await Deno.readTextFile(context);
+		await this.loadScript(context);
+		TestManager.contextLoaded(context);
+	}
+	
+	private async loadScript(context: URL, bindTestCases = true) {
+		const path = new Path(context);
+		const dx = await path.getTextContent();
 
 		// execute DATEX Script with 'test' extension
 		const tests = (<any> await Datex.Runtime.executeDatexLocally(dx, [], {
@@ -31,15 +43,15 @@ export class DatexTestRunner extends TestRunner {
 				TestManager.registerTestGroup(context, groupName.toString())
 				if (testGroup) {
 					for (const [name, test] of Datex.DatexObject.entries(testGroup)) {
-						await TestManager.bindTestCase(context, groupName.toString(), name.toString(), [], test);
+						if (bindTestCases)
+							await TestManager.bindTestCase(context, groupName.toString(), name.toString(), [], test);
+						else 
+							await TestManager.registerTestCase(context, groupName.toString(), name.toString(), []);
 					}
 				}
 	
 			}
 		}
 		
-
-		TestManager.contextLoaded(context)
 	}
-	
 }

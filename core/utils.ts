@@ -7,17 +7,36 @@ import { TestRunner } from "./test_runner.ts";
 export const logger = new Logger("Test Runner", true, LOG_FORMATTING.PLAINTEXT);
 
 export function getPath(path:string, is_dir = false){
-	const pathObj = new Path(path.startsWith("/") ? path : Deno.cwd()+'/'+path);
+	const pathObj = new Path(path, "file://" + Deno.cwd()+ "/");
 	if (is_dir) return pathObj.asDir();
 	else return pathObj;
 }
 
 
+export async function getTestFilesFromPaths(paths:string[]) {
+	const files:Path[] = [];
+	for (const path of paths) {
+		try {
+			for (const file of await getTestFiles(path))
+				files.push(file);
+		}
+		catch (e){
+			logger.error("Invalid path for test files: " + getPath(path, true))
+			Deno.exit();
+		}
+	}
+	return files;
+}
+
 
 export async function getTestFiles(path:string|Path){
 	path = path instanceof Path ? path : getPath(path);
+
 	// does path exist?
-	if (!path.fs_exists) throw new Error("Path " + path + " does not exist");
+	if (!await path.exists()) {
+		if (path.is_web) throw new Error("URL " + path + " returned an invalid status code");
+		else throw new Error("Path " + path + " does not exist");
+	}
 	
 	// get directory
 	if (path.fs_is_dir) {

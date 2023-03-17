@@ -106,11 +106,13 @@ const NOBOX = {
 
 		let had_failure = false;
 
+		this.results = [];
+
 		for (const variation of (this.params.length == 0 ? [[]] : this.params)) {
 			logger.debug("running test ?", this.name);
 			const t0 = performance.now(); // TODO execution time without DATEX transmission duration?
 
-			if (!this.func) throw new Error("Test Case cannot be executed")
+			if (!this.func) throw new Error("Test Case "+this.formatted_name+" cannot be executed")
 
 			try {
 				await this.func(...variation);
@@ -137,13 +139,13 @@ const NOBOX = {
 	}
 
 	// deno-lint-ignore no-unused-vars
-	constructor(name:string, params:any[][], func:(...args:any)=>void|Promise<void>) {}
-	@constructor construct(name:string, params:any[][], func:(...args:any)=>void|Promise<void>) {
+	constructor(name:string, params:any[][], func?:(...args:any)=>void|Promise<void>) {}
+	@constructor construct(name:string, params:any[][], func?:(...args:any)=>void|Promise<void>) {
 		this.name = name;
 		this.reset(params, func)
 	}
 
-	reset(params:any[][], func:(...args:any)=>void|Promise<void>) {
+	reset(params:any[][], func?:(...args:any)=>void|Promise<void>) {
 		this.params = params;
 		this.tests_count = this.params.length == 0 ? 1 : this.params.length;
 		this.failed_tests = 0;
@@ -221,7 +223,7 @@ const NOBOX = {
 	}
 
 
-	@property setTestCase(name: string, params: any[][], func: (...args: any) => void | Promise<void>):TestCase {
+	@property setTestCase(name: string, params: any[][], func?: (...args: any) => void | Promise<void>):TestCase {
 
 		// test case already exists
 
@@ -275,14 +277,18 @@ const NOBOX = {
 		// group name
 		if (this.state  == TEST_CASE_STATE.SUCCESSFUL) logger.plain `#color(white)${box.TOP_LEFT}${box.HORIZONTAL} [[#bold#color(green) PASS ]]#bold#color(green) ${(this.formatted_name)} #color(white)${box.HORIZONTAL.repeat(innerWidth-this.formatted_name.length-10)}${box.TOP_RIGHT}`
 		else if (this.state  == TEST_CASE_STATE.FAILED) logger.plain  `#color(white)${box.TOP_LEFT}${box.HORIZONTAL} [[#bold#color(red) FAIL ]]#bold#color(red) ${(this.formatted_name)} #color(white)${box.HORIZONTAL.repeat(innerWidth-this.formatted_name.length-10)}${box.TOP_RIGHT}`
-		
+		else logger.plain  `#color(white)${box.TOP_LEFT}${box.HORIZONTAL} [[#bold#color(yellow) INITIALIZED ]]#bold#color(yellow) ${(this.formatted_name)} #color(white)${box.HORIZONTAL.repeat(innerWidth-this.formatted_name.length-17)}${box.TOP_RIGHT}`
+
 		// top box with file name
 		logger.plain `#color(white)${box.VERTICAL}${' '.repeat(innerWidth)}${box.VERTICAL}`
 		logger.plain `#color(white)${box.VERTICAL}   File: #color(grey)${this.context.toString().replace("file://","").padEnd(innerWidth-9)}#color(white)${box.VERTICAL}`
-		if (this.endpoint) logger.plain `#color(white)${box.VERTICAL}   Endpoint: #color(grey)${this.endpoint.toString().padEnd(innerWidth-13)}#color(white)${box.VERTICAL}`
-		logger.plain `#color(white)${box.VERTICAL}${' '.repeat(innerWidth)}${box.VERTICAL}`
-		logger.plain `#color(white)${box.T_RIGHT}${box.HORIZONTAL.repeat(leftCellWidth+8)}${box.T_DOWN}${box.HORIZONTAL.repeat(rightCellWidth+3)}${box.T_LEFT}`
-		logger.plain `#color(white)${box.VERTICAL}${' '.repeat(leftCellWidth+8)}${box.VERTICAL}${' '.repeat(rightCellWidth+3)}${box.VERTICAL}`
+		if (this.endpoint && this.endpoint != Datex.LOCAL_ENDPOINT) logger.plain `#color(white)${box.VERTICAL}   Endpoint: #color(grey)${this.endpoint.toString().padEnd(innerWidth-13)}#color(white)${box.VERTICAL}`
+		
+		if (this.test_cases.size) {
+			logger.plain `#color(white)${box.VERTICAL}${' '.repeat(innerWidth)}${box.VERTICAL}`
+			logger.plain `#color(white)${box.T_RIGHT}${box.HORIZONTAL.repeat(leftCellWidth+8)}${box.T_DOWN}${box.HORIZONTAL.repeat(rightCellWidth+3)}${box.T_LEFT}`
+			logger.plain `#color(white)${box.VERTICAL}${' '.repeat(leftCellWidth+8)}${box.VERTICAL}${' '.repeat(rightCellWidth+3)}${box.VERTICAL}`	
+		}
 
 		// test cases
 		for (const test of this.test_cases.values()) {
@@ -290,7 +296,7 @@ const NOBOX = {
 
 			let right = 0;
 			for (const result of test.results) right += Number(result[0]);
-			const success_rate = `${right}/${test.results.length}`;
+			const success_rate = `${right}/${test.params.length||1}`;
 
 			if (test.state == TEST_CASE_STATE.SUCCESSFUL) logger.plain `#color(white)${box.VERTICAL}#color(green)   ✓ ${test.formatted_name.padEnd(normalTextWidth, " ")} #color(13,93,47)${dur.padStart(runtimeWidth, " ")}  ${box.VERTICAL} #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ${box.VERTICAL}`
 			else if (test.state == TEST_CASE_STATE.FAILED) {
@@ -303,6 +309,9 @@ const NOBOX = {
 						else logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${(typeof result[2] == "string" ? result[2] : Datex.Runtime.valueToDatexString(result[2],false)).padEnd(leftCellWidth-1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
 					}
 				}
+			}
+			else {
+				logger.plain `#color(white)${box.VERTICAL}#color(yellow)   ● ${test.formatted_name.padEnd(normalTextWidth, " ")}             #color(white)${box.VERTICAL} #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ${box.VERTICAL}`
 			}
 		}
 
