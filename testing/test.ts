@@ -8,7 +8,6 @@
  *   not sure about the order in the decorator proposal (but static methods before class decorator would make sense)
  */
 
-import { f } from "unyt_core";
 import { Datex, remote, scope, to } from "unyt_core";
 import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL } from "unyt_core/datex_all.ts";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.ts";
