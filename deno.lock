@@ -2,7 +2,9 @@
   "version": "2",
   "remote": {
     "https://cdn.skypack.dev/-/indexeddbshim@v9.0.0-QVaW8rBIOGlJegwkWTsK/dist=es2020,mode=imports/unoptimized/dist/indexeddbshim-noninvasive.js": "036e9191db93ef296b84a8a59192d4851f231e3b76a638543491cf81fe08b666",
+    "https://cdn.skypack.dev/-/json5@v2.2.3-595sOcismSLIYZuuBGYo/dist=es2019,mode=imports/optimized/json5.js": "e3902909af865e1bab65bf170d79bc0d6f72f2c3626601aed12d9b0aaee3169c",
     "https://cdn.skypack.dev/-/regenerator-runtime@v0.13.9-4Dxus9nU31cBsHxnWq2H/dist=es2020,mode=imports/optimized/regenerator-runtime.js": "9d5c28ca64c45a9e606d5f3b35aec61568ed451495968171c8cc3ef1923cb7fe",
+    "https://cdn.skypack.dev/json5": "9e731bca7ee24e6532af2f3745357ff72c9be405ebb2b0eba8489e589ba13ee8",
     "https://cdn.skypack.dev/pin/indexeddbshim@v9.0.0-QVaW8rBIOGlJegwkWTsK/mode=imports/unoptimized/dist/indexeddbshim-noninvasive.js": "978a698ccf50ce19735b1da6cad00277cc8fc790610df183c61c2f9cc1df9c9b",
     "https://cdn.skypack.dev/pin/regenerator-runtime@v0.13.9-4Dxus9nU31cBsHxnWq2H/mode=imports/optimized/regenerator-runtime.js": "091dd6c5266025b80081cdd5bbadd9f6e03cad950c8a16c7454b58d77b422253",
     "https://deno.land/std@0.136.0/_util/assert.ts": "e94f2eb37cebd7f199952e242c77654e43333c1ac4c5c700e929ea3aa5489f74",
@@ -55,6 +57,7 @@
     "https://deno.land/x/input@2.0.3/index.ts": "f9539661733886f9497873a640a79be4f996ea2d40408b68e74691353f5a5539",
     "https://deno.land/x/input@2.0.3/printer.ts": "60339de0f3d98ca9ad2cb4e3b047d0b680e27ed7ceb987d82d96fc00f7ab04d1",
     "https://deno.land/x/input@2.0.3/types.ts": "915079a7187073c9c9c99863ab4e4a4c7341e25bf5d4a2e02c33f8b896dd0c69",
+    "https://deno.land/x/json5@v1.0.0/mod.ts": "0975ee46086985b2e354e901d052f50b3c4b0ed828d0563492b6a02589402574",
     "https://deno.land/x/mimetypes@v1.0.0/mod.ts": "abd1ea614b32cfa7fd50b46f6e070617696664698b8a34935dc807f3035ad408",
     "https://deno.land/x/mimetypes@v1.0.0/src/mime.ts": "7cd7590eae6127dc1abfe710900fc749e94d5c715ffe8a148e59fe20ee21a9a5",
     "https://deno.land/x/sqlite@v3.3.0/build/sqlite.d.ts": "b52e6b5ea2e0517750be2ea1eae8da0edd5056c1f285247aa1c0153f4ef504ec",
@@ -108,7 +111,7 @@
     "https://dev.cdn.unyt.org/unyt_core/network/supranet.ts": "a33be70d264f3dd2d7bb37ebf6880984e097ba62294e11980efbf475db21a282",
     "https://dev.cdn.unyt.org/unyt_core/network/unyt.ts": "79f94a3bdd1cae7fb722346ee36dc9045b71bc93e8e744242054db566424d180",
     "https://dev.cdn.unyt.org/unyt_core/runtime/cache_path.ts": "e920bba23373f2a61e549a7ad090eb4f4f87cdcc7ee5a19c6c1e135c91ee3957",
-    "https://dev.cdn.unyt.org/unyt_core/runtime/cli.ts": "1aa1cf585d31fb3c3bb4bfcda5f73ceecf1089b38720f55721d5fe234a0fc7e1",
+    "https://dev.cdn.unyt.org/unyt_core/runtime/cli.ts": "65ad75723caad901cd0fea4731e3c206f2a2a63a65d6ee980354b70490236164",
     "https://dev.cdn.unyt.org/unyt_core/runtime/constants.ts": "8eeaff1c3379560bc55209cb90517b5ccbe8132b9601d28d2473d314dc404a76",
     "https://dev.cdn.unyt.org/unyt_core/runtime/crypto.ts": "affdddd34bb08d23b1ad32e9f0c9a3a362dd4ddca83199245261748a1aca82ea",
     "https://dev.cdn.unyt.org/unyt_core/runtime/debugger.ts": "ad1b12229b5d8749107e12a5b6c157b4d65e675e53c3182dc4c01cee75efe9b7",
@@ -147,17 +150,12 @@
     "https://dev.cdn.unyt.org/unyt_core/utils/global_types.ts": "93f4c99c9362e56655d5a446d91dff21a44cbb6451ce8f0934dfeb5c0a2d6423",
     "https://dev.cdn.unyt.org/unyt_core/utils/global_values.ts": "ce69fbf958563b4fd1f72e69bb061eb259b4ccc2024245db23a16d081f48b129",
     "https://dev.cdn.unyt.org/unyt_core/utils/local_files.ts": "f81613b5aecc4d4b1fbf6884d3acb7785cb656d72fe9e6cf81dbe3f0c8264993",
-    "https://dev.cdn.unyt.org/unyt_core/utils/logger.ts": "9fd3c19546143a6b99bb1a2428ad27804b5b640806799d37dea590b5da9df63a",
+    "https://dev.cdn.unyt.org/unyt_core/utils/logger.ts": "d8f11ca090c57acb202aa9ec404d37d84fb626e7619d11d17aa662af98667873",
     "https://dev.cdn.unyt.org/unyt_core/utils/message_logger.ts": "f8e76e19d98e07cf64d7c955d7e1a59a9f686b14fe37817271d1146eb71b31c4",
     "https://dev.cdn.unyt.org/unyt_core/utils/observers.ts": "df82f2dfbc0189d7f3f6d1f21461ac4a329a6dbbd7ec1bd72d3cd2f5afada9a6",
     "https://dev.cdn.unyt.org/unyt_core/utils/polyfills.ts": "1f47a967c5813e8a465ca985af8a5867884f8aadd8d763d361b548121fbc6ccf",
     "https://dev.cdn.unyt.org/unyt_core/utils/utils.ts": "a6977fe040a4295c0c6006b4e1a0e414cfbb56ffe8f6b1e8b18274fdfbdc89b9",
     "https://dev.cdn.unyt.org/unyt_core/wasm/adapter/pkg/datex_wasm.js": "e9416983fb275de1cd28849c3cb85ba3d3be05032e9246c73fe217e7a2d422c5",
-    "https://dev.cdn.unyt.org/unyt_node/path.ts": "ca9bdc82707f960e8e0a71cfe7d62e74f74d060a86f24240f0dae4355c4a1799",
-    "https://dev.cdn.unyt.org/unyt_tests/testing/assertions.ts": "ceddee8b46728eecb67acdb91c660fe3f1c1164b11421f7924f6dff3e84019b3",
-    "https://dev.cdn.unyt.org/unyt_tests/testing/init_node.ts": "9cead25313edec66babd0723a46061496c62e8407a4e6e62f29e64f6057ecb8b",
-    "https://dev.cdn.unyt.org/unyt_tests/testing/init_worker.ts": "3f8fd3ffb8043887255b40719a5a7e115e59529e5241912b59e74313b80ec944",
-    "https://dev.cdn.unyt.org/unyt_tests/testing/legacy_decorators.ts": "213b21e32a0debd8432b82f577440d9cfebcdc096213c118cb55a811e2b157c8",
-    "https://dev.cdn.unyt.org/unyt_tests/testing/test.ts": "a186c67271d4ff5e79d31eebf9ae36a6574bed1668fd529159cb0505441225be"
+    "https://dev.cdn.unyt.org/unyt_node/path.ts": "ca9bdc82707f960e8e0a71cfe7d62e74f74d060a86f24240f0dae4355c4a1799"
   }
 }

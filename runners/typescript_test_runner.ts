@@ -3,8 +3,13 @@ import { Datex } from "unyt_core";
 import { TestManager } from "../core/test_manager.ts";
 import { Path } from "unyt_node/path.ts";
 
-import { type DocNode } from "https://deno.land/x/deno_doc@0.58.0/lib/types.d.ts";
+import { type DocNode, type ClassDef, type FunctionDef } from "https://deno.land/x/deno_doc@0.58.0/lib/types.d.ts";
+import { TestGroupOptions } from "../core/test_case.ts";
+import { METADATA } from "../testing/legacy_decorators.ts";
+import { DEFAULT_TIMEOUT, TEST_CASE_DATA, TEST_GROUP_DATA, TIMEOUT } from "../testing/test.ts";
+import { AssertionError } from "unyt_core/types/errors.ts";
 const doc = globalThis.Deno ? (await import("https://deno.land/x/deno_doc@0.58.0/mod.ts")).doc : null;
+const json5 = globalThis.Deno ? await import("https://deno.land/x/json5@v1.0.0/mod.ts") : null;
 
 /**
  * Runs TypeScript/JavaScript tests in deno/browser worker context
@@ -18,7 +23,7 @@ export class TypescriptTestRunner extends TestRunner {
 
 	protected async handleLoadStatic(context: URL) {
 
-		if (!doc) return;
+		if (!doc) return false;
 
 		// empty file to trick doc module resolver (?)
 		const mockDir = await Deno.makeTempDir();
@@ -48,12 +53,14 @@ export class TypescriptTestRunner extends TestRunner {
 		TestManager.registerContext(context);
 
 		// load tests
-		for (const {name:groupName, testCases} of staticTestInfo) {
-			TestManager.registerTestGroup(context, groupName.toString())
+		for (const {name:groupName, testCases, options} of staticTestInfo) {
+			TestManager.registerTestGroup(context, groupName.toString(), options)
 			for (const {name, args} of testCases) {
 				await TestManager.registerTestCase(context, groupName.toString(), name.toString(), args ? new Array<any[]>(args.length).fill([]) : []);
 			}
 		}
+
+		return true;
 		
 	}	
 
@@ -68,11 +75,13 @@ export class TypescriptTestRunner extends TestRunner {
 		for (const node of docNodes) {
 			if (node.kind == "class") {
 				const testCases = [];
+				const options = this.parseTestDecoratorOptions(node.classDef);
 
 				// get class methods (test cases)
 				for (const el of node.classDef.methods) {
 					for (const d of el.functionDef.decorators??[]) {
 						if (d.name == "Test") {
+							// const options = this.parseTestDecoratorOptions(el.functionDef);
 							testCases.push({name: el.name, args: d.args});
 							break;
 						}
@@ -81,6 +90,7 @@ export class TypescriptTestRunner extends TestRunner {
 
 				testsGroups.push({
 					name: node.name,
+					options,
 					testCases
 				})
 			}
@@ -88,22 +98,131 @@ export class TypescriptTestRunner extends TestRunner {
 		return testsGroups;
 	}
 
-	protected async handleLoad(path: URL, endpoint:Datex.Endpoint) {
+	private parseTestDecoratorOptions(target: ClassDef|FunctionDef): TestGroupOptions|undefined {
+		if (!json5) throw new Error("Cannot statically parse decorator params, json5 module not available (TODO)");
+		for (const d of target.decorators??[]) {
+			if (d.name == "Test") {
+				for (let i = 0; i<=1; i++) {
+					if (d.args?.[i][0] == "{") {
+						const options = json5.parse(d.args[i]);
+						return options;
+					}
+				}
+			}
+		}
+	}
+
+	protected async handleLoad(context: URL, initOptions: TestRunner.InitializationOptions) {
+
+		let loadImport = true;
+		let loadWorker = true;
+
+		let loaded = true;
+
+		// check if has common 'worker' flag - only worker context required
+		if (initOptions.commonFlags.includes('worker')) {
+			loadImport = false;
+		}
+		// no group has a 'worker' flag - only same process context required
+		else if (!initOptions.allFlags.includes('worker')) {
+			loadWorker = false;
+		}
+
+		if (loadImport) loaded &&= await this.loadImport(context, initOptions);
+		if (loadWorker) loaded &&= await this.loadWorker(context, initOptions);
+
+		await TestManager.contextLoaded(context);
+
+		return loaded;
+	}
+
+	private worker?: Worker
+
+	// load tests in worker
+	private async loadWorker(path: URL, initOptions: TestRunner.InitializationOptions) {
+
+		// stop previous worker
+		this.worker?.terminate();
+
 		const env = {
 			test_manager: Datex.Runtime.endpoint.toString(), 
-			endpoint: endpoint.toString(),
+			endpoint: initOptions.endpoint.toString(),
 			context: path.toString(),
 			supranet_connect: TestManager.SUPRANET_CONNECT.toString()
 		};
 
-		const worker = new Worker(path, {
+		this.worker = new Worker(path, {
 			type: "module"
 		});
 
-		await loaded(worker); // worker emits "loaded" message
-		worker.postMessage(env); // set env data
+		this.worker.onerror = (e)=>{
+			console.error("could not load worker (probably es6 import problems)")
+		}
+
+		await loaded(this.worker); // worker emits "loaded" message
+		this.worker.postMessage(env); // set env data
+
+		return new Promise<boolean>(resolve=>{
+			this.worker!.onmessage = (e)=>{
+				if (e.data == "ready") resolve(true)
+			}
+		});
 	}
-	
+
+	private count = 0;
+
+	// load tests in same processs
+	private async loadImport(context: URL, initOptions: TestRunner.InitializationOptions) {
+		const module = await import(context.toString() + "?c="+this.count++);
+
+		for (const [group_name, value] of Object.entries(module)) {
+			// test group
+			if (typeof value == "function" && (<any>value)[METADATA][TEST_GROUP_DATA]) {
+
+
+				// check group options ('worker' flag)
+				const group_options = <TestGroupOptions|undefined> ((<any>value)[METADATA]?.[TEST_GROUP_DATA]?.constructor?.[1]);
+
+				if (group_options?.flags?.includes("worker")) continue;
+
+				await TestManager.registerTestGroup(context, group_name);
+
+				for (const k of Object.getOwnPropertyNames(value.prototype)) {
+
+					if (k == "constructor") continue;
+					// @ts-ignore
+					const test_case_data = <[test_name:string, params:any[][], options:TestGroupOptions,  value:(...args: any) => void | Promise<void>]>value.prototype[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
+			
+
+					// @ts-ignore handle constructor
+					if (test_case_data == Object) continue;
+			
+					const timeout = value.prototype[METADATA]?.[TIMEOUT]?.public?.[k] ?? DEFAULT_TIMEOUT;
+					if (test_case_data) {
+						await TestManager.bindTestCase(
+							context,
+							group_name, 
+							test_case_data[0],
+							test_case_data[1],
+							Datex.Pointer.proxifyValue(Datex.Function.createFromJSFunction(function (...args:any[]){
+								// either timeout rejects or test case resolves first
+								return Promise.race([
+									test_case_data[3](...args),
+									new Promise<any>((_,reject)=>setTimeout(()=>reject(new AssertionError("Exceeded maximum allowed execution time of "+timeout+"s")), timeout*1000)) // reject after timeout
+								])
+							}, undefined, undefined, undefined, undefined, undefined, Datex.Function.getFunctionParams(test_case_data[3])))
+							
+						);
+					}
+				}
+			
+				await TestManager.testGroupLoaded(context, group_name);
+			}
+		}
+
+		return true;
+	}
+
 }
 
 const loaded = (w:Worker) => new Promise(r => w.addEventListener("message", r, { once: true }));

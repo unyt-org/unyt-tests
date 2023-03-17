@@ -1,7 +1,7 @@
 import { Datex } from "unyt_core";
 import { expose, Logger, LOG_LEVEL, scope } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
-import { TestGroup, TEST_CASE_STATE } from "./test_case.ts";
+import { TestGroup, type TestGroupOptions, TEST_CASE_STATE } from "./test_case.ts";
 import { TestRunner } from "./test_runner.ts";
 
 Logger.development_log_level = LOG_LEVEL.WARNING; // log level for debug logs (suppresses most)
@@ -36,16 +36,18 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
     }
 
     // load matching test contexts for files
-    static async loadTests(files:URL[], loadOptions: TestRunner.loadOptions = TestRunner.getDefaultLoadOptions(), runImmediately = false) {
+    static async loadTests(files:URL[], loadOptions: TestRunner.LoadOptions = TestRunner.getDefaultLoadOptions(), runImmediately = false, reload = false) {
 
         if (!loadOptions.initLive && runImmediately) throw new Error("Cannot load test files with runImmediately enabled, but loadOptions.initLive disabled. Tests can only be executed when the test contexts are initialized.")
+
+        if (reload) this.resetContextPromises(files);
 
         const promises = [];
         for (const file of files) {
             const runner = TestRunner.getRunnerForFile(file)
             if (runner) {
                 if (runImmediately) this.contextsToRunImmediately.add(file.toString())
-                promises.push(runner.load(file, loadOptions))
+                promises.push(runner.load(file, loadOptions, reload))
             }
             else throw "could not find a test runner for " + file;
         }
@@ -56,10 +58,46 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
         else await Promise.all(promises);
     }
 
+    static getInitOptionsForContext(context: URL): TestRunner.InitializationOptions|undefined {
+        const context_string = context.toString();
+        if (!this.tests.has(context_string)) return;
+
+        const testGroupOptions:Record<string,TestRunner.TestGroupOptions> = {};
+        let commonFlags: Set<string>|undefined;
+        const allFlags = new Set<string>();
+
+        for (const [name, group] of this.tests.get(context_string)!.entries()) {
+            testGroupOptions[name] = {
+                flags: group.options?.flags??[]
+            };
+            // init commonFlags
+            if (!commonFlags) {
+                if (group.options?.flags) commonFlags = new Set(group.options?.flags);
+            } 
+            // intersection
+            else {
+                for (const flag of commonFlags) {
+                    if (!group.options?.flags?.includes(flag)) commonFlags.delete(flag);
+                }
+            }
+
+            // allFlags
+            for (const flag of group.options?.flags??[]) allFlags.add(flag)
+        }
+
+        return {
+            endpoint: TestRunner.getNewEndpoint(),
+            testGroupOptions,
+            commonFlags: [...commonFlags??[]],
+            allFlags: [...allFlags]
+        }
+
+    }
+
 
     // print all reports for all groups of the contexts and exit with status code
-    static printReportAndExit(contexts:URL[]) {
-        const successful = this.printReport(contexts);
+    static printReportAndExit(contexts:URL[], short = false) {
+        const successful = this.printReport(contexts, short);
         if (globalThis.Deno) {
             if (successful) Deno.exit()
             else Deno.exit(1);
@@ -67,14 +105,20 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
     }
 
     // print all reports for all groups of the contexts
-    static printReport(contexts:URL[]) {
+    static printReport(contexts:URL[], short = false) {
+        if (short) console.log(""); // margin top
+
         let successful = true;
         for (const context of contexts) {
+            logger.debug("groups",this.tests)
+
             for (const group of this.tests.get(context.toString())?.values()??[]) {
-                group.printReport();
+                group.printReport(short);
                 if (group.state != TEST_CASE_STATE.SUCCESSFUL) successful = false;
             }
         }
+        if (short) console.log(""); // margin top
+
         return successful;
     }
 
@@ -94,7 +138,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
             // make sure context gets live
             TestRunner.getRunnerForFile(context)!.initLive(context, false);
             await this.waitForContextLoad(context);
-            for (const [_name, group] of this.tests.get(context.toString())!) {
+            for (const [_name, group] of this.tests.get(context.toString())??[]) {
                 promises.push(group.run())
             }
         }
@@ -115,7 +159,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
         logger.debug("loaded context " + context)
 
         // all tests groups in context
-        for (const group of this.tests.get(context.toString())!.values()) {
+        for (const group of this.tests.get(context.toString())?.values()??[]) {
             await group.finishAllTests();
         }
     }
@@ -139,6 +183,13 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
         }
     }
 
+    private static resetContextPromises(contexts: URL[]) {
+        for (const context of contexts) {
+            const context_string = context.toString();
+            this.context_promises.delete(context_string)
+        }
+    }
+
 
     // DATEX interface:
 
@@ -147,15 +198,27 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
     @property static registerContext(context:URL){
         logger.debug("registered context: " + context)
         this.getContextPromise(context); // make sure a context promise exists
-        this.tests.set(context.toString(), new Map());
+        if (!this.tests.has(context.toString())) this.tests.set(context.toString(), new Map());
     }
 
     // register test group
-    @property static registerTestGroup(context:URL, group_name:string){
-        if (!this.tests.has(context.toString())) this.tests.set(context.toString(), new Map());
+    @property static registerTestGroup(context:URL, group_name:string, options?: TestGroupOptions){
+        if (!this.tests.has(context.toString())) {
+            this.tests.set(context.toString(), new Map());
+        }
+
+        // update existing TestGroup
+        if (this.tests.get(context.toString())!.has(group_name)) {
+            const group = this.tests.get(context.toString())!.get(group_name)!;
+            group.endpoint = (datex.meta??datex.localMeta).sender;
+            if (options) group.options = options;
+            return;
+        }
         
-        logger.debug("new test group", group_name, context, (datex.meta??datex.localMeta).sender.toString());
-        this.tests.get(context.toString())!.set(group_name, new TestGroup(group_name, context, (datex.meta??datex.localMeta).sender));
+        else {
+            this.tests.get(context.toString())!.set(group_name, new TestGroup(group_name, context, (datex.meta??datex.localMeta).sender, options));
+            logger.debug("new test group", group_name, context, (datex.meta??datex.localMeta).sender.toString(), options, this.tests);
+        }
     }
 
     /**

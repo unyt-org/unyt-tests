@@ -4,7 +4,7 @@ import { Logger, LOG_LEVEL } from 'unyt_core/datex_all.ts';
 import { JUnitReportGenerator } from './report_generators/junit_report_generator.ts';
 import { getCommandLineOptions } from './core/command_line_args.ts';
 import { TestManager } from './core/test_manager.ts';
-import { getTestFiles, getPath, logger, printHeaderInfo, getTestFilesFromPaths } from './core/utils.ts';
+import { getTestFiles, getPath, logger, printHeaderInfo, getTestFilesFromPaths, watchFiles } from './core/utils.ts';
 
 
 // enabled test runners
@@ -12,6 +12,9 @@ import "./runners/typescript_test_runner.ts";
 import "./runners/datex_test_runner.ts";
 
 const options = getCommandLineOptions();
+
+if (options.watch) logger.clear(true);
+else console.log("")
 
 // debug mode
 if (options.verbose) {
@@ -28,20 +31,32 @@ await TestManager.connect();
 printHeaderInfo(files);
 
 // run
-await TestManager.loadTests(files, {initLive: false, analyizeStatic: false}); // init test contexts for all test files
+await TestManager.loadTests(files); // init test contexts for all test files // , {initLive: false, analyizeStatic: false}
 await TestManager.runTests(files);
 
 // export report?
-if (options.reportfile) {
-	if (options.reporttype == "junit") new JUnitReportGenerator(files).generateReport(getPath(options.reportfile))
-}
+exportReportFile();
  
 // print report
 if (options.watch) {
-	TestManager.printReport(files);
-	// TODO
+	TestManager.printReport(files, options.short);
+	watchFiles(files, async (path)=> {
+		logger.clear(true);
+		printHeaderInfo(files);
+		await TestManager.loadTests([path], {initLive: true, analyizeStatic: true}, true, true); // init test contexts for all test files
+		TestManager.printReport(files, options.short);
+		exportReportFile();
+	})
 }
 
 else {
-	TestManager.printReportAndExit(files); // print to stdout
+	TestManager.printReportAndExit(files, options.short); // print to stdout
+}
+
+
+function exportReportFile() {
+	// export report?
+	if (options.reportfile) {
+		if (options.reporttype == "junit") new JUnitReportGenerator(files).generateReport(getPath(options.reportfile))
+	}
 }

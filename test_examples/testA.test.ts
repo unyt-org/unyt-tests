@@ -1,12 +1,17 @@
-import { Test, Assert } from "unyt_tests";
+import { Test, Assert } from "../testing/test.ts";
 
-@Test class JSTestGroup1 {
+@Test({
+	runConditions: {
+		runtime: ['node']
+	},
+	flags: ['wo rker']
+}) export class JSTestGroup1 {
 	
-	@Test(
+	@Test([
 		[1,2], 
-		[2,5], 
-		[3,7]
-	) 
+		[2,4], 
+		[3,6]
+	]) 
 	firstTest(a:number, b:number) {
 		Assert.equals(a*2, b)
 	}
@@ -16,15 +21,14 @@ import { Test, Assert } from "unyt_tests";
 	}
 }
 
-@Test export class JSTestGroup2 {
+@Test({
+	flags: ['wor ker', 'x']
+}) export class JSTestGroup2 {
 	
-	@Test(
+	@Test([
 		[()=>{throw 'x'}], 
 		[()=>{throw 'x'}], 
-		[()=>{throw 'x'}], 
-		[()=>{throw 'x'}], 
-		[()=>{return 'x'}], 
-	) 
+	]) 
 	firstTest(f:Function) {
 		Assert.throws(f)
 	}
@@ -33,7 +37,7 @@ import { Test, Assert } from "unyt_tests";
 		Assert.equals(1,1)
 	}
 
-	@Test secondTest3 = () => {
+	@Test secondTest3() {
 		Assert.equals(1,1)
 	}
 }

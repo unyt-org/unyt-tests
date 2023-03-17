@@ -21,9 +21,10 @@ export class DatexTestRunner extends TestRunner {
 		return this.loadScript(context, false);
 	}	
 
-	protected async handleLoad(context: URL, _endpoint:Datex.Endpoint) {
-		await this.loadScript(context);
-		TestManager.contextLoaded(context);
+	protected async handleLoad(context: URL, initOptions:TestRunner.InitializationOptions) {
+		const loaded = await this.loadScript(context);
+		await TestManager.contextLoaded(context);
+		return loaded;
 	}
 	
 	private async loadScript(context: URL, bindTestCases = true) {
@@ -35,7 +36,7 @@ export class DatexTestRunner extends TestRunner {
 			required_extensions: ['test'],
 		}, context))?.test;
 
-		TestManager.registerContext(context)
+		await TestManager.registerContext(context)
 
 		// load tests
 		if (tests) {
@@ -52,6 +53,7 @@ export class DatexTestRunner extends TestRunner {
 	
 			}
 		}
-		
+
+		return true;
 	}
 }

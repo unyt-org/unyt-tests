@@ -3,17 +3,29 @@ import { Datex } from "unyt_core";
 import { logger, getPath } from "./utils.ts";
 import { Class } from "unyt_core/datex_all.ts";
 import { TestManager } from "./test_manager.ts";
+import { TestGroup } from "./test_case.ts";
 
 // deno-lint-ignore no-namespace
 export namespace TestRunner {
 
 	export interface Options {
-		watch?:boolean
+
 	}	
 
-	export type loadOptions = {
+	export type LoadOptions = {
 		initLive?: boolean, // if true, the test context (file) is loaded (but the tests are not yet executed)
 		analyizeStatic?: boolean // if true, the test file is statically analyized to register the available tests
+	}
+
+	export type TestGroupOptions = {
+		flags: string[]
+	}
+
+	export type InitializationOptions = {
+		testGroupOptions: {[groupName:string]: TestGroupOptions},
+		endpoint: Datex.Endpoint,
+		commonFlags: string[],
+		allFlags: string[]
 	}
 }
 
@@ -22,10 +34,23 @@ export abstract class TestRunner {
 	protected file_paths:Set<URL>
 	protected options:TestRunner.Options
 
-	public static getDefaultLoadOptions(){
+	public static getDefaultLoadOptions(): TestRunner.LoadOptions{
 		return {
 			initLive: false,
 			analyizeStatic: true
+		}
+	}
+
+	public static getNewEndpoint() {
+		return Datex.Runtime.endpoint.getInstance(Math.floor(Math.random()*0xffff));
+	}
+
+	public static getDefaultInitOptions(): TestRunner.InitializationOptions{
+		return {
+			testGroupOptions: {},
+			endpoint: this.getNewEndpoint(),
+			commonFlags: [],
+			allFlags: []
 		}
 	}
 
@@ -37,17 +62,24 @@ export abstract class TestRunner {
 		this.options = options;
 	}
 
-	public async loadAll(options: TestRunner.loadOptions = TestRunner.getDefaultLoadOptions()){
+	public async loadAll(options: TestRunner.LoadOptions = TestRunner.getDefaultLoadOptions(), reloadIfAlreadyLive = false){
 		const promises = [];
-		for (const path of this.file_paths) promises.push(this.load(path, options));
+		for (const path of this.file_paths) promises.push(this.load(path, options, reloadIfAlreadyLive));
 		await Promise.all(promises);
 	}
 
-	public async load(path:URL, options: TestRunner.loadOptions = TestRunner.getDefaultLoadOptions()){
-		this.file_paths.add(path);
+	public async load(context:URL, options: TestRunner.LoadOptions = TestRunner.getDefaultLoadOptions(), reloadIfAlreadyLive = false){
+		this.file_paths.add(context);
 		try {
-			if (options.analyizeStatic) await this.handleLoadStatic(path);
-			if (options.initLive) await this.initLive(path);
+			if (options.analyizeStatic) {
+				const loaded = await this.handleLoadStatic(context);
+				if (!loaded) {
+					logger.error("could not statically analyze " + context);
+					globalThis.Deno?.exit(1);
+					throw new Error("could not statically analyze " + context);
+				}
+			}
+			if (options.initLive) await this.initLive(context, reloadIfAlreadyLive);
 		} catch (e)  {
 			logger.error("Error starting test environment", e)
 		}
@@ -55,15 +87,19 @@ export abstract class TestRunner {
 
 	#liveContexts = new Set<string>()
 
-	public initLive(path:URL, reloadIfAlreadyLive = false) {
+	public async initLive(context:URL, reloadIfAlreadyLive = false) {
 		// already live?
-		if (!reloadIfAlreadyLive && this.#liveContexts.has(path.toString())) return;
+		if (!reloadIfAlreadyLive && this.#liveContexts.has(context.toString())) return;
 
 		// load context live
-		const endpoint = Datex.Runtime.endpoint.getInstance(Math.floor(Math.random()*0xffff))
-		logger.debug `loading test context: ${path}`;
-		this.#liveContexts.add(path.toString())
-		return this.handleLoad(path, endpoint);
+		logger.debug `loading test context: ${context}`;
+		this.#liveContexts.add(context.toString())
+		const loaded = await this.handleLoad(context, TestManager.getInitOptionsForContext(context) ?? TestRunner.getDefaultInitOptions());
+		if (!loaded) {
+			logger.error("could not load test file " + context);
+			globalThis.Deno?.exit(1);
+			throw new Error("could not load test file " + context);
+		}
 	}
 
 	/**
@@ -75,14 +111,14 @@ export abstract class TestRunner {
 	 * @param context context path
 	 * @param endpoint can be used when a standalone context with an endpoint is required
 	 */
-	protected abstract handleLoad(context:URL, endpoint:Datex.Endpoint):void|Promise<void>
+	protected abstract handleLoad(context:URL, initOptions:TestRunner.InitializationOptions):boolean|Promise<boolean>
 
 	/**
 	 * Statically analyze a context (path) and register all available test groups and test cases (registerContext,
 	 * registerTestGroup, registerTestCase) on the TestManager
 	 * @param context context path
 	 */
-	protected abstract handleLoadStatic(context:URL):void|Promise<void>
+	protected abstract handleLoadStatic(context:URL):boolean|Promise<boolean>
 }
 
 

@@ -10,13 +10,14 @@ type command_line_options = {
 	watch: boolean,
 	paths: string[],
 	color: 'rgb'|'simple'|'none',
-	verbose: boolean
+	verbose: boolean,
+	short: boolean
 }
 
 const default_paths:string[] = []
 
 const optionDefinitions = {
-	boolean: ["w", "v"],
+	boolean: ["w", "v", "s"],
 	string: ["c", "reporttype", "r", "p"],
 
 	alias: {
@@ -25,11 +26,13 @@ const optionDefinitions = {
 		v: "verbose",
 		p: "paths",
 		r: "reportfile",
+		s: "short"
 	},
 	
 	default: {
 		reporttype: 'junit',
 		c: 'rgb',
+		s: false
 	},
 	
 	collect: ["p"],

@@ -12,34 +12,36 @@ import { Datex, remote, scope, to } from "unyt_core";
 import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL } from "unyt_core/datex_all.ts";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.ts";
 import type { context_kind, context_meta_getter, context_meta_setter, context_name } from "./legacy_decorators.ts";
+import { TestGroupOptions } from "../core/test_case.ts";
 
 export * from "./assertions.ts";
 
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;
 
-const logger = new Logger("Test", true);
-
-const DEFAULT_TIMEOUT = 60; // 60s
 
 const manager_out = new Disjunction<Endpoint>();
 
 const ENV: {
     endpoint?: Endpoint,
     test_manager?: Endpoint,
-    context?: URL,
+    context: URL,
     supranet_connect?:boolean
-} = {};
+} = {
+    context: new URL(import.meta.url)
+};
+
+let isSameProcess = true;
 
 let init_resolve:Function;
 const initialized= new Promise(resolve=>init_resolve=resolve);
 
-export async function init(env?:typeof ENV){
+export async function init(env?:Partial<typeof ENV>){
     if (env) Object.assign(ENV, env);
 
     if (ENV.test_manager) manager_out.add(ENV.test_manager);
     if (ENV.supranet_connect) await Datex.Supranet.connect(ENV.endpoint, false);
-    else await Datex.Supranet.init(ENV.endpoint, false);
+    else if (ENV.endpoint) await Datex.Supranet.init(ENV.endpoint, false);
     await TestManager.registerContext(ENV.context);
     init_resolve(); // init ready
 }
@@ -47,30 +49,33 @@ export async function init(env?:typeof ENV){
 
 /** handle init depending on context */
 
-// @ts-ignore nodejs
-if (globalThis.process) {
-    import("./init_node.ts")
-}
+// // @ts-ignore nodejs
+// if (globalThis.process) {
+//     isSameProcess = false;
+//     import("./init_node.ts")
+// }
 
 // service worker
-else if (globalThis.self) {
+if (!globalThis.window) {
+    isSameProcess = false;
     import("./init_worker.ts")
 }
 
-else {
-    logger.warn("could not automatically initialize test environment, manual initialization required")
-}
 
 async function registerTests(group_name:string, value:Function){
     await initialized; // wait for init
 
+    // check group options ('worker' flag)
+    const group_options = <TestGroupOptions|undefined> ((<any>value)[METADATA]?.[TEST_GROUP_DATA]?.constructor?.[1]);
+    if (!group_options?.flags?.includes("worker")) return;
+    
     await TestManager.registerTestGroup(ENV.context!, group_name);
 
     const test_case_promises:Promise<void>[] = []
 
     for (const k of Object.getOwnPropertyNames(value.prototype)) {
         if (k == "constructor") continue;
-        const test_case_data = <[test_name:string, params:any[][], value:(...args: any) => void | Promise<void>]>value.prototype[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
+        const test_case_data = <[test_name:string, params:any[][], options:TestGroupOptions, value:(...args: any) => void | Promise<void>]>value.prototype[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
 
         // @ts-ignore handle constructor
         if (test_case_data == Object) continue;
@@ -85,10 +90,10 @@ async function registerTests(group_name:string, value:Function){
             Datex.Pointer.proxifyValue(Datex.Function.createFromJSFunction(function (...args:any[]){
                 // either timeout rejects or test case resolves first
                 return Promise.race([
-                    test_case_data[2](...args),
+                    test_case_data[3](...args),
                     new Promise<any>((_,reject)=>setTimeout(()=>reject(new AssertionError("Exceeded maximum allowed execution time of "+timeout+"s")), timeout*1000)) // reject after timeout
                 ])
-            }, undefined, undefined, undefined, undefined, undefined, Datex.Function.getFunctionParams(test_case_data[2])))
+            }, undefined, undefined, undefined, undefined, undefined, Datex.Function.getFunctionParams(test_case_data[3])))
             
         ));
         }
@@ -97,7 +102,10 @@ async function registerTests(group_name:string, value:Function){
     await Promise.all(test_case_promises);
 
     await TestManager.testGroupLoaded(ENV.context!, group_name);
-    await TestManager.contextLoaded(ENV.context);
+
+
+    // @ts-ignore
+    postMessage("ready");
     // setTimeout(()=>TestManager.contextLoaded(ENV.context), 1000)
 }
 
@@ -105,16 +113,25 @@ async function registerTests(group_name:string, value:Function){
 
 
 
+export const TEST_GROUP_DATA = Symbol("test_group_data");
+export const TEST_CASE_DATA = Symbol("test_case");
+export const TIMEOUT = Symbol("timeout");
+export const DEFAULT_TIMEOUT = 60; // 60s
 
-const TEST_CASE_DATA = Symbol("test_case");
-const TIMEOUT = Symbol("timeout");
+type decorator_target = {[key: string]: any} & Partial<Record<keyof Array<any>, never>>;
 
 
 // @Test (legacy decorators support)
 export function Test(name:string):any
-export function Test(...test_parameters:any[][]):any
-export function Test(...test_paramters:any[]):any
-export function Test(target: Function):any
+export function Test(options:TestGroupOptions):any
+export function Test(name:string, options:TestGroupOptions):any
+
+export function Test(test_parameters:(unknown|unknown[])[]):any
+export function Test(name:string, test_parameters:(unknown|unknown[])[]):any
+// export function Test(name:string, test_parameters:(unknown|unknown[])[], options:TestGroupOptions):any
+
+// export function Test(...test_paramters:any[]):any
+export function Test(target: any, name?: string, method?:any):any
 export function Test(target: Function, options:any):any
 export function Test(...args:any[]) {return handleDecoratorArgs(args, _Test)}
 
@@ -127,22 +144,36 @@ export function Test(...args:any[]) {return handleDecoratorArgs(args, _Test)}
 
 function _Test(value:any, name:context_name, kind:context_kind, _is_static:boolean, _is_private:boolean, setMetadata:context_meta_setter, getMetadata:context_meta_getter, params:[string?]|any[][] = []) {
 
+    // options
+    let options: TestGroupOptions|undefined;
+    if (typeof params[0] == "object" && !(params[0] instanceof Array)) options = params[0]
+    else if (typeof params[1] == "object" && !(params[1] instanceof Array)) options = params[1]
+    else if (typeof params[2] == "object" && !(params[2] instanceof Array)) options = params[2]
+
+    // name
+    const test_name = typeof params[0] == "string" ? params[0] : name;
+    
     if (kind == 'class') {
-        // use class name as default test group name
-        if (!(typeof params[0] == "string")) params[0] = <string>name;
-        
-        const group_name = params[0]??<string>name;
-        registerTests(group_name, value);
+        const group_name = <string> test_name;
+
+        setMetadata(TEST_GROUP_DATA, [group_name, options]);
+
+        // handle tests via DATEX, if not in same process
+        if (!isSameProcess) registerTests(group_name, value);
     }
 
     else if (kind == 'method') {
-        // convert single parameters to parameter arrays
-        for (let i=0;i<params.length;i++) {
-            if (!(params[i] instanceof Array)) params[i] = [params[i]] 
-        }
 
-        const test_name = name;
-        setMetadata(TEST_CASE_DATA, [test_name, params, value]);
+        // params
+        let parameters: any[] = [];
+        if (params[0] instanceof Array) parameters = params[0];
+        else if (params[1] instanceof Array) parameters = params[1];
+        // convert single parameters to parameter arrays
+        for (let i=0;i<parameters?.length;i++) {
+            if (!(parameters[i] instanceof Array)) parameters[i] = [parameters[i]] 
+        }
+                
+        setMetadata(TEST_CASE_DATA, [test_name, parameters, options, value]);
     }
 
 }
@@ -169,7 +200,8 @@ function _Timeout(value:any, name:context_name, kind:context_kind, _is_static:bo
 
 }
 
-// TestManager in main process
+// interface TestManager in main process - ignored if isSameProcess == true
+if (isSameProcess) manager_out.add(Datex.LOCAL_ENDPOINT);
 @scope @to(manager_out) class TestManager {
 
     @remote static registerContext(context:URL|void):Promise<URL|void>{return Promise.resolve(undefined)}

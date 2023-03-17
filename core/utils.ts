@@ -1,10 +1,11 @@
 import { Datex } from "unyt_core";
-import { Logger, LOG_FORMATTING } from 'unyt_core/datex_all.ts';
+import { client_type, ESCAPE_SEQUENCES, Logger, LOG_FORMATTING } from 'unyt_core/datex_all.ts';
 import { BOX_WIDTH, VERSION } from "./constants.ts";
 import { Path } from "unyt_node/path.ts";
 import { TestRunner } from "./test_runner.ts";
+import { TestManager } from "./test_manager.ts";
 
-export const logger = new Logger("Test Runner", true, LOG_FORMATTING.PLAINTEXT);
+export const logger = new Logger("Test Runner", true, client_type == "browser" ? LOG_FORMATTING.COLOR_RGB : LOG_FORMATTING.PLAINTEXT);
 
 export function getPath(path:string, is_dir = false){
 	const pathObj = new Path(path, "file://" + Deno.cwd()+ "/");
@@ -26,6 +27,23 @@ export async function getTestFilesFromPaths(paths:string[]) {
 		}
 	}
 	return files;
+}
+
+
+export async function watchFiles(paths:Path[], handler:(path:Path)=>void) {
+
+	for await (const event of Deno.watchFs(paths.map(p=>p.pathname), {recursive: true})) {
+		try {
+			for (const path of event.paths) {
+				const src_path = new Path(path);
+				logger.info("#color(grey)file update: " + src_path);
+				handler(src_path);
+			}
+		}
+		catch (e) {
+			console.log("file update error:",e);
+		}
+	}
 }
 
 
@@ -74,21 +92,30 @@ async function searchDirectory(dirPath:Path, files:Path[]) {
 
 export function printHeaderInfo(files:URL[]){
 
-	logger.plain `
-#color(white)╔═ [[ unyt tests ]]#reset ${(VERSION + ' ').padEnd(BOX_WIDTH-17, '═')}╗
-#color(white)║${' '.repeat(BOX_WIDTH-2)}║
-#color(white)║    Endpoint: #color(grey)${Datex.Runtime.endpoint.toString().padEnd(BOX_WIDTH-16, ' ')}║
-#color(white)║    Test Files:${' '.repeat(BOX_WIDTH-17)}║`
+	const main_color = ESCAPE_SEQUENCES.WHITE;
+
+	logger.lock();
+
+	logger.plain `${main_color}╔═ [[ unyt tests ]]#reset ${VERSION}${main_color}${' '.padEnd(BOX_WIDTH-25, '═')}╗
+${main_color}║${' '.repeat(BOX_WIDTH-2)}║
+${main_color}║    #color(white)Test Files:${' '.repeat(BOX_WIDTH-17)}${main_color}║`
 
 	for (const file of files) {
-		logger.plain `#color(white)║       #color(grey)${file.toString().replace("file://","").padEnd(BOX_WIDTH-9, ' ')}#color(white)║`
+		logger.plain `${main_color}║       #color(grey)${file.toString().replace("file://","").padEnd(BOX_WIDTH-9, ' ')}${main_color}║`
 	}
 
-	logger.plain `#color(white)║${' '.repeat(BOX_WIDTH-2)}║`
-	logger.plain `#color(white)╚${'═'.repeat(BOX_WIDTH-2)}╝`
+	logger.plain `${main_color}║${' '.repeat(BOX_WIDTH-2)}${main_color}║`
+
+	logger.plain `${main_color}║    #color(white)Endpoint: #color(grey)${Datex.Runtime.endpoint.toString().padEnd(BOX_WIDTH-16, ' ')}${main_color}║`
+
+	logger.plain `${main_color}║${' '.repeat(BOX_WIDTH-2)}║`
+	logger.plain `${main_color}╚${'═'.repeat(BOX_WIDTH-2)}╝`
+
+	logger.flush();
 }
 
 export function exitWithError(message:string) {
 	logger.plain('#color(red)'+message);
+	
 	Deno.exit(1);
 }

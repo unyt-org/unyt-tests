@@ -2,6 +2,7 @@ import { sync, property, constructor, Datex } from "unyt_core";
 import { AssertionError } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
 import { BOX_WIDTH } from "./constants.ts";
+import { Path } from "unyt_node/path.ts";
 
 export enum TEST_CASE_STATE {
 	INITIALIZED,
@@ -155,6 +156,14 @@ const NOBOX = {
 	}
 }
 
+export interface RunConditions {
+	runtime?: string[]
+}
+
+export interface TestGroupOptions {
+	runConditions?: RunConditions
+	flags: string[]
+}
 
 
 @sync export class TestGroup {
@@ -163,6 +172,8 @@ const NOBOX = {
 	@property context!: URL
 	@property test_cases:Map<string,TestCase> = new Map()
 	@property endpoint?: Datex.Endpoint
+
+	@property options?: TestGroupOptions
 
 	@property get state() {
 		let has_failed = false,
@@ -215,11 +226,12 @@ const NOBOX = {
 	}
 
 
-	constructor(name:string, context:URL, endpoint?:Datex.Endpoint){}
-	@constructor construct(name:string, context:URL, endpoint?:Datex.Endpoint){
+	constructor(name:string, context:URL, endpoint?:Datex.Endpoint, options?: TestGroupOptions){}
+	@constructor construct(name:string, context:URL, endpoint?:Datex.Endpoint, options?: TestGroupOptions){
 		this.name = name;
 		this.context = context;
 		this.endpoint = endpoint;
+		this.options = options;
 	}
 
 
@@ -261,7 +273,12 @@ const NOBOX = {
 	}
 
 
-	printReport(){
+	printReport(short = false){
+		if (short) this.printReportShort()
+		else this.printReportLong()
+	}
+
+	printReportLong() {
 
 		const box = BOX_SINGLE;
 
@@ -271,6 +288,8 @@ const NOBOX = {
 		const runtimeWidth = 10
 		const leftCellWidth = innerWidth-rightCellWidth-12;
 		const normalTextWidth = leftCellWidth-runtimeWidth;
+
+		logger.lock();
 
 		logger.plain("")
 
@@ -303,11 +322,8 @@ const NOBOX = {
 			
 				logger.plain  `#color(white)${box.VERTICAL}#color(red)   ☓ ${test.formatted_name.padEnd(normalTextWidth, " ")} #color(103,22,38)${dur.padStart(runtimeWidth, " ")}  ${box.VERTICAL} #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ${box.VERTICAL}`
 				for (const result of test.results) {
-					if (result[0] == false) {
-						if (result[2] instanceof AssertionError) logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${this.#trimText(result[2].message, leftCellWidth-1)}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
-						else if (result[2] instanceof Error) logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${this.#trimText(result[2].constructor.name + ': ' + result[2].message, leftCellWidth-1)}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
-						else logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       • ${(typeof result[2] == "string" ? result[2] : Datex.Runtime.valueToDatexString(result[2],false)).padEnd(leftCellWidth-1, " ")}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
-					}
+					if (result[0] == false)
+						logger.plain  `#color(white)${box.VERTICAL}#color(103,22,38)       〉${this.#trimText(this.formatError(result[2]), leftCellWidth-1)}#color(white)${box.VERTICAL}${" ".repeat(rightCellWidth+3)}${box.VERTICAL}`
 				}
 			}
 			else {
@@ -318,6 +334,52 @@ const NOBOX = {
 		logger.plain `#color(white)${box.VERTICAL}${' '.repeat(leftCellWidth+8)}${box.VERTICAL}${' '.repeat(rightCellWidth+3)}${box.VERTICAL}`
 		logger.plain `#color(white)${box.BOTTOM_LEFT}${box.HORIZONTAL.repeat(leftCellWidth+8)}${box.T_UP}${box.HORIZONTAL.repeat(rightCellWidth+3)}${box.BOTTOM_RIGHT}`
 
+		logger.flush();
 	}
 
+	printReportShort() {
+
+		logger.lock();
+
+		if (this.state  == TEST_CASE_STATE.SUCCESSFUL) 
+			logger.plain `[[#bold#color(green) PASS ]]#bold#color(green) ${(this.formatted_name)} #reset#color(grey)(${new Path(this.context).name})#reset`
+		else if (this.state  == TEST_CASE_STATE.FAILED) {
+			logger.plain `[[#bold#color(red) FAIL ]]#bold#color(red) ${(this.formatted_name)} #reset#color(grey)(${new Path(this.context).name})#reset`
+
+			// test cases
+			for (const test of this.test_cases.values()) {
+
+				let failed = 0;
+				for (const result of test.results) failed += Number(!result[0]);
+				const failure_rate = `${failed}/${test.params.length||1}`;
+
+				if (failed) {
+					if (test.params.length <= 1) {
+						logger.plain  `#color(red)   ☓ ${test.formatted_name} #color(103,22,38)〉${this.formatError(test.results[0][2])}`;
+					}
+					else {
+						logger.plain  `#color(red)   ☓ ${test.formatted_name} #color(grey)| ${failure_rate} tests failed`
+	
+						for (const result of test.results) {
+							if (result[0] == false) logger.plain  `#color(103,22,38)     〉${this.formatError(result[2])}`
+						}
+					}
+					
+				}
+
+			}
+		}
+
+		else logger.plain  `[[#bold#color(yellow) INITIALIZED ]]#bold#color(yellow) ${(this.formatted_name)} #reset#color(grey)(${new Path(this.context).name})#reset`
+
+
+		logger.flush();
+	}
+
+	private formatError(error:any) {
+		if (error instanceof AssertionError) return error.message;
+		else if (error instanceof Error) return error.constructor.name + ': ' + error.message;
+		else if (typeof error == "string") return error;
+		else return Datex.Runtime.valueToDatexString(error,false);
+	}
 }
