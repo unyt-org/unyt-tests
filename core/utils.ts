@@ -63,7 +63,7 @@ async function searchDirectory(dirPath:Path, files:Path[]) {
 	  	// .test file?
 		else {
 			const path = dirPath.getChildPath(entry.name);
-			if (path.hasFileExtension(...TestRunner.supportedExtensions)) {
+			if (path.hasFileExtension(...TestRunner.availableTestSpecificExtensions)) {
 				files.push(path);
 			}
 		}

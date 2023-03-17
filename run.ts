@@ -6,7 +6,6 @@ import { getCommandLineOptions } from './core/command_line_args.ts';
 import { TestManager } from './core/test_manager.ts';
 import { getTestFiles, getPath, logger, printHeaderInfo, getTestFilesFromPaths } from './core/utils.ts';
 
-globalThis.NO_CLI = true;
 
 // enabled test runners
 import "./runners/typescript_test_runner.ts";

@@ -251,8 +251,8 @@ const NOBOX = {
     }
 
 
-	finishAllTests():Promise<void[]> {
-		return Promise.all([...this.test_cases.values()].map(test=>test.await_finished))
+	async finishAllTests() {
+		await Promise.all([...this.test_cases.values()].map(test=>test.await_finished))
 	}
 
 	#trimText(text:string, max_length:number) {

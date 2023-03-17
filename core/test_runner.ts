@@ -37,10 +37,10 @@ export abstract class TestRunner {
 		this.options = options;
 	}
 
-	public loadAll(options: TestRunner.loadOptions = TestRunner.getDefaultLoadOptions()){
+	public async loadAll(options: TestRunner.loadOptions = TestRunner.getDefaultLoadOptions()){
 		const promises = [];
 		for (const path of this.file_paths) promises.push(this.load(path, options));
-		return Promise.all(promises);
+		await Promise.all(promises);
 	}
 
 	public async load(path:URL, options: TestRunner.loadOptions = TestRunner.getDefaultLoadOptions()){
@@ -99,8 +99,10 @@ export namespace TestRunner {
 		instance?:T
 	}
 	
-	export const supportedExtensions:string[] = []
-	
+	// .test.xy extensions that are allowed when scanning a directory
+	export const availableTestSpecificExtensions:string[] = []
+	export const availableExtensions:string[] = []
+
 	const runners = new Set<runnerData>()
 	const runnersByExtension = new Map<string, runnerData>();
 	
@@ -114,10 +116,11 @@ export namespace TestRunner {
 				logger.warn(`Test runner ${target.name} has not registered any file extensions`);
 			}
 			for (const ext of options.fileExtensions) {
-				if (supportedExtensions.includes(ext)) {
+				if (availableExtensions.includes(ext)) {
 					logger.warn(`File extension "${ext}" was registered by multiple test runners`);
 				}
-				supportedExtensions.push(ext);
+				availableExtensions.push(ext);
+				availableTestSpecificExtensions.push("test."+ext);
 				runnersByExtension.set(ext, runnerData);
 			}
 		}
@@ -125,7 +128,7 @@ export namespace TestRunner {
 
 	export function getRunnerForFile(file:URL|string) {
 		const path = new Path(file);
-		const ext = path.hasFileExtension(...supportedExtensions)
+		const ext = path.hasFileExtension(...availableExtensions)
 		if (ext) {
 			const runner = runnersByExtension.get(ext)!;
 			if (!runner.instance) runner!.instance = new runner.class();

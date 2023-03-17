@@ -12,7 +12,7 @@ import { Path } from "unyt_node/path.ts";
 
 
 @TestRunner.Config({
-	fileExtensions: ['test.dx']
+	fileExtensions: ['dx']
 })
 export class DatexTestRunner extends TestRunner {
 

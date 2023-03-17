@@ -7,12 +7,13 @@ import { TestRunner } from "./test_runner.ts";
 Logger.development_log_level = LOG_LEVEL.WARNING; // log level for debug logs (suppresses most)
 Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (log all)
 
-// store all tests
-// context -> (group name -> group)
-const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
 
 // Analyzation
 @endpoint export class TestManager {
+
+    // store all tests
+    // context -> (group name -> group)
+    static tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
 
     static SUPRANET_CONNECT = false;
 
@@ -35,7 +36,7 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     }
 
     // load matching test contexts for files
-    static loadTests(files:URL[], loadOptions: TestRunner.loadOptions = TestRunner.getDefaultLoadOptions(), runImmediately = false) {
+    static async loadTests(files:URL[], loadOptions: TestRunner.loadOptions = TestRunner.getDefaultLoadOptions(), runImmediately = false) {
 
         if (!loadOptions.initLive && runImmediately) throw new Error("Cannot load test files with runImmediately enabled, but loadOptions.initLive disabled. Tests can only be executed when the test contexts are initialized.")
 
@@ -50,9 +51,9 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
         }
 
         // tests are already executed in the background, wait until finished
-        if (runImmediately) return this.finishTestExecutions(files)
+        if (runImmediately) await this.finishTestExecutions(files)
         // resolve when all test files are loaded
-        else return Promise.all(promises);
+        else await Promise.all(promises);
     }
 
 
@@ -69,7 +70,7 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     static printReport(contexts:URL[]) {
         let successful = true;
         for (const context of contexts) {
-            for (const group of tests.get(context.toString())?.values()??[]) {
+            for (const group of this.tests.get(context.toString())?.values()??[]) {
                 group.printReport();
                 if (group.state != TEST_CASE_STATE.SUCCESSFUL) successful = false;
             }
@@ -78,7 +79,7 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     }
 
     static getGroupsForContext(context:URL) {
-        return tests.get(context.toString())?.values() ?? [];
+        return this.tests.get(context.toString())?.values() ?? [];
     }
 
     /**
@@ -93,18 +94,18 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
             // make sure context gets live
             TestRunner.getRunnerForFile(context)!.initLive(context, false);
             await this.waitForContextLoad(context);
-            for (const [_name, group] of tests.get(context.toString())!) {
+            for (const [_name, group] of this.tests.get(context.toString())!) {
                 promises.push(group.run())
             }
         }
-        return Promise.all(promises);
+        await Promise.all(promises);
     }
 
 
     // wait for all contexts and run all tests
-    static finishTestExecutions(contexts:URL[]) {
+    static async finishTestExecutions(contexts:URL[]) {
         // wait until all contexts loaded and tests run
-        return Promise.all(contexts.map(context => this.finishTestExecution(context)))
+        await Promise.all(contexts.map(context => this.finishTestExecution(context)))
     }
 
     // wait for context and run all tests
@@ -114,7 +115,7 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
         logger.debug("loaded context " + context)
 
         // all tests groups in context
-        for (const group of tests.get(context.toString())!.values()) {
+        for (const group of this.tests.get(context.toString())!.values()) {
             await group.finishAllTests();
         }
     }
@@ -146,15 +147,15 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
     @property static registerContext(context:URL){
         logger.debug("registered context: " + context)
         this.getContextPromise(context); // make sure a context promise exists
-        tests.set(context.toString(), new Map());
+        this.tests.set(context.toString(), new Map());
     }
 
     // register test group
     @property static registerTestGroup(context:URL, group_name:string){
-        if (!tests.has(context.toString())) tests.set(context.toString(), new Map());
+        if (!this.tests.has(context.toString())) this.tests.set(context.toString(), new Map());
         
         logger.debug("new test group", group_name, context, (datex.meta??datex.localMeta).sender.toString());
-        tests.get(context.toString())!.set(group_name, new TestGroup(group_name, context, (datex.meta??datex.localMeta).sender));
+        this.tests.get(context.toString())!.set(group_name, new TestGroup(group_name, context, (datex.meta??datex.localMeta).sender));
     }
 
     /**
@@ -170,18 +171,18 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
         const context_string = context.toString();
 
          // context not registered
-         if (!tests.has(context_string)) {
+         if (!this.tests.has(context_string)) {
             logger.error("trying to bind test case to unknown context " + context);
             return;
         }
 
         // group not registered
-        else if (!tests.get(context_string)!.has(group_name)) {
+        else if (!this.tests.get(context_string)!.has(group_name)) {
             logger.error("trying to bind test case to unknown test group " + group_name);
             return;
         }
 
-        const group = tests.get(context_string)!.get(group_name)!;
+        const group = this.tests.get(context_string)!.get(group_name)!;
         group.setTestCase(test_name, params);
     }
 
@@ -214,20 +215,20 @@ const tests = new Map<string, Map<string, TestGroup>>(); // eternal TODO?
         const context_string = context.toString();
 
         // context not registered
-        if (!tests.has(context_string)) {
+        if (!this.tests.has(context_string)) {
             logger.error("trying to bind test case to unknown context " + context);
             return;
         }
 
         // group not registered
-        else if (!tests.get(context_string)!.has(group_name)) {
+        else if (!this.tests.get(context_string)!.has(group_name)) {
             logger.error("trying to bind test case to unknown test group " + group_name);
             return;
         }
 
         // bind to group
         else {
-            const group = tests.get(context_string)!.get(group_name)!;
+            const group = this.tests.get(context_string)!.get(group_name)!;
             const test_case = group.setTestCase(test_name, params, func);
             // start running test case immediately in the background
             if (this.contextsToRunImmediately.has(context_string)) test_case.run()

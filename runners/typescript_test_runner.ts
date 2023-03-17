@@ -1,11 +1,10 @@
 import { TestRunner } from "../core/test_runner.ts";
 import { Datex } from "unyt_core";
 import { TestManager } from "../core/test_manager.ts";
-
-import { doc } from "https://deno.land/x/deno_doc@0.58.0/mod.ts";
-import { DocNode } from "https://deno.land/x/deno_doc@0.58.0/lib/types.d.ts";
-
 import { Path } from "unyt_node/path.ts";
+
+import { type DocNode } from "https://deno.land/x/deno_doc@0.58.0/lib/types.d.ts";
+const doc = globalThis.Deno ? (await import("https://deno.land/x/deno_doc@0.58.0/mod.ts")).doc : null;
 
 /**
  * Runs TypeScript/JavaScript tests in deno/browser worker context
@@ -13,11 +12,14 @@ import { Path } from "unyt_node/path.ts";
 
 
 @TestRunner.Config({
-	fileExtensions: ['test.ts', 'test.js', 'test.tsx', 'test.jsx']
+	fileExtensions: ['ts', 'js', 'tsx', 'jsx']
 })
 export class TypescriptTestRunner extends TestRunner {
 
 	protected async handleLoadStatic(context: URL) {
+
+		if (!doc) return;
+
 		// empty file to trick doc module resolver (?)
 		const mockDir = await Deno.makeTempDir();
 		const mockFile = new Path(mockDir).asDir().getChildPath("void.ts");
