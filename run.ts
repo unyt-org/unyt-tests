@@ -30,6 +30,24 @@ await TestManager.connect();
 
 printHeaderInfo(files);
 
+// handle updates
+if (options.watch) {
+	Deno.addSignalListener("SIGWINCH", () => {
+		updateContent()
+   });
+   
+   let ongoingUpdate = false;
+   TestManager.onUpdate(()=>{
+	   if (ongoingUpdate) return;
+	   ongoingUpdate = true;
+	   setTimeout(()=>{
+		   updateContent();
+		   ongoingUpdate = false;
+	   }, 1000)
+   })
+}
+
+
 // run
 await TestManager.loadTests(files); // init test contexts for all test files // , {initLive: false, analyizeStatic: false}
 await TestManager.runTests(files);
@@ -39,12 +57,12 @@ exportReportFile();
  
 // print report
 if (options.watch) {
-	TestManager.printReport(files, options.short);
+	updateContent();
 	watchFiles(files, async (path)=> {
 		logger.clear(true);
 		printHeaderInfo(files);
 		await TestManager.loadTests([path], {initLive: true, analyizeStatic: true}, true, true); // init test contexts for all test files
-		TestManager.printReport(files, options.short);
+		updateContent();
 		exportReportFile();
 	})
 }
@@ -59,4 +77,11 @@ function exportReportFile() {
 	if (options.reportfile) {
 		if (options.reporttype == "junit") new JUnitReportGenerator(files).generateReport(getPath(options.reportfile))
 	}
+}
+  
+
+function updateContent() {
+	logger.clear(true);
+	printHeaderInfo(files);
+	TestManager.printReport(files, options.short);
 }

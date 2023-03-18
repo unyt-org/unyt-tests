@@ -4,13 +4,11 @@ import { Test, Assert } from "../testing/test.ts";
 	runConditions: {
 		runtime: ['node']
 	},
-	flags: ['worker']
+	flags: ['workerx']
 }) export class JSTestGroup1 {
 	
 	@Test([
-		[1,20], 
-		[2,4], 
-		[3,6]
+		[1,2]
 	]) 
 	async firstTest(a:number, b:number) {
 		Assert.equals(a*2, b)

@@ -1,7 +1,7 @@
 import { sync, property, constructor, Datex } from "unyt_core";
 import { AssertionError } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
-import { BOX_WIDTH } from "./constants.ts";
+import { getBoxWidth } from "./constants.ts";
 import { Path } from "unyt_node/path.ts";
 
 export enum TEST_CASE_STATE {
@@ -282,7 +282,7 @@ export interface TestGroupOptions {
 
 		const box = BOX_SINGLE;
 
-		const width = BOX_WIDTH;
+		const width = getBoxWidth();
 		const innerWidth = width-2;
 		const rightCellWidth = 7;
 		const runtimeWidth = 10
@@ -296,7 +296,8 @@ export interface TestGroupOptions {
 		// group name
 		if (this.state  == TEST_CASE_STATE.SUCCESSFUL) logger.plain `#color(white)${box.TOP_LEFT}${box.HORIZONTAL} [[#bold#color(green) PASS ]]#bold#color(green) ${(this.formatted_name)} #color(white)${box.HORIZONTAL.repeat(innerWidth-this.formatted_name.length-10)}${box.TOP_RIGHT}`
 		else if (this.state  == TEST_CASE_STATE.FAILED) logger.plain  `#color(white)${box.TOP_LEFT}${box.HORIZONTAL} [[#bold#color(red) FAIL ]]#bold#color(red) ${(this.formatted_name)} #color(white)${box.HORIZONTAL.repeat(innerWidth-this.formatted_name.length-10)}${box.TOP_RIGHT}`
-		else logger.plain  `#color(white)${box.TOP_LEFT}${box.HORIZONTAL} [[#bold#color(yellow) INITIALIZED ]]#bold#color(yellow) ${(this.formatted_name)} #color(white)${box.HORIZONTAL.repeat(innerWidth-this.formatted_name.length-17)}${box.TOP_RIGHT}`
+		else if (this.state == TEST_CASE_STATE.RUNNING) logger.plain  `#color(white)${box.TOP_LEFT}${box.HORIZONTAL} [[#bold#color(cyan) RUNNING ]]#bold#color(cyan) ${(this.formatted_name)} #color(white)${box.HORIZONTAL.repeat(innerWidth-this.formatted_name.length-13)}${box.TOP_RIGHT}`
+		else logger.plain  `#color(white)${box.TOP_LEFT}${box.HORIZONTAL} [[#bold#color(cyan) INITIALIZED ]]#bold#color(cyan) ${(this.formatted_name)} #color(white)${box.HORIZONTAL.repeat(innerWidth-this.formatted_name.length-17)}${box.TOP_RIGHT}`
 
 		// top box with file name
 		logger.plain `#color(white)${box.VERTICAL}${' '.repeat(innerWidth)}${box.VERTICAL}`
@@ -327,7 +328,7 @@ export interface TestGroupOptions {
 				}
 			}
 			else {
-				logger.plain `#color(white)${box.VERTICAL}#color(yellow)   ● ${test.formatted_name.padEnd(normalTextWidth, " ")}             #color(white)${box.VERTICAL} #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ${box.VERTICAL}`
+				logger.plain `#color(white)${box.VERTICAL}#color(cyan)   ● ${test.formatted_name.padEnd(normalTextWidth, " ")}             #color(white)${box.VERTICAL} #color(white)${success_rate.padStart(rightCellWidth, ' ')}  ${box.VERTICAL}`
 			}
 		}
 
@@ -345,12 +346,16 @@ export interface TestGroupOptions {
 
 	printReportShort() {
 
+		const fileName = new Path(this.context).name;
+		const groupTitleLength = getBoxWidth() - fileName.length;
+
+
 		logger.lock();
 
 		if (this.state  == TEST_CASE_STATE.SUCCESSFUL) 
-			logger.plain `[[#bold#color(green) PASS ]]#bold#color(green) ${(this.formatted_name)} #reset#color(grey)(${new Path(this.context).name})#reset`
+			logger.plain `[[#bold#color(green) PASS ]]#bold#color(green) ${(this.formatted_name.padEnd(groupTitleLength - 10, " "))} #reset#color(grey)(${fileName})#reset`
 		else if (this.state  == TEST_CASE_STATE.FAILED) {
-			logger.plain `[[#bold#color(red) FAIL ]]#bold#color(red) ${(this.formatted_name)} #reset#color(grey)(${new Path(this.context).name})#reset`
+			logger.plain `[[#bold#color(red) FAIL ]]#bold#color(red) ${(this.formatted_name.padEnd(groupTitleLength - 10, " "))} #reset#color(grey)(${fileName})#reset`
 
 			// test cases
 			for (const test of this.test_cases.values()) {
@@ -364,7 +369,7 @@ export interface TestGroupOptions {
 						logger.plain  `#color(red)   ☓ ${test.formatted_name} #color(103,22,38)〉${this.formatError(test.results[0][2])}`;
 					}
 					else {
-						logger.plain  `#color(red)   ☓ ${test.formatted_name} #color(grey)| ${failure_rate} tests failed`
+						logger.plain  `#color(red)   ☓ ${test.formatted_name}: #color(grey)${failure_rate + ' tests failed'}`
 	
 						for (const result of test.results) {
 							if (result[0] == false) logger.plain  `#color(103,22,38)     〉${this.formatError(result[2])}`
@@ -376,7 +381,8 @@ export interface TestGroupOptions {
 			}
 		}
 
-		else logger.plain  `[[#bold#color(yellow) INITIALIZED ]]#bold#color(yellow) ${(this.formatted_name)} #reset#color(grey)(${new Path(this.context).name})#reset`
+		else if (this.state == TEST_CASE_STATE.RUNNING)  logger.plain  `[[#bold#color(cyan) RUNNING ]]#bold#color(cyan) ${(this.formatted_name.padEnd(groupTitleLength - 13, " "))} #reset#color(grey)(${fileName})#reset`
+		else logger.plain  `[[#bold#color(cyan) INITIALIZED ]]#bold#color(cyan) ${(this.formatted_name.padEnd(groupTitleLength - 17, " "))} #reset#color(grey)(${fileName})#reset`
 
 
 		logger.flush();

@@ -191,6 +191,15 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
         }
     }
 
+    private static updateHandlers = new Set<()=>void>();
+    public static onUpdate(handler:()=>void){
+        this.updateHandlers.add(handler);
+    }
+
+    private static handleUpdate() {
+        for (const handler of this.updateHandlers) handler();
+    }
+
 
     // DATEX interface:
 
@@ -220,6 +229,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
             this.tests.get(context.toString())!.set(group_name, new TestGroup(group_name, context, (datex.meta??datex.localMeta).sender, options));
             logger.debug("new test group", group_name, context, (datex.meta??datex.localMeta).sender.toString(), options, this.tests);
         }
+        this.handleUpdate();
     }
 
     /**
@@ -248,6 +258,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
 
         const group = this.tests.get(context_string)!.get(group_name)!;
         group.setTestCase(test_name, params);
+        this.handleUpdate();
     }
 
 
@@ -271,7 +282,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
         if (this.context_resolves.has(context_string)) {
             this.context_resolves.get(context_string)!();
             this.context_resolves.delete(context_string); // reset
-        } 
+        }
     }
 
     // add test data for an existing test group
@@ -298,6 +309,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
             if (this.contextsToRunImmediately.has(context_string)) test_case.run()
         }
 
+        this.handleUpdate();
     }
 
 }
