@@ -75,21 +75,21 @@ export class TypescriptTestRunner extends TestRunner {
 		for (const node of docNodes) {
 			if (node.kind == "class") {
 				const testCases = [];
-				const options = this.parseTestDecoratorOptions(node.classDef);
+				const [name, options] = this.parseTestNameAndOptionsFromDecorator(node.classDef);
 
 				// get class methods (test cases)
 				for (const el of node.classDef.methods) {
 					for (const d of el.functionDef.decorators??[]) {
 						if (d.name == "Test") {
-							// const options = this.parseTestDecoratorOptions(el.functionDef);
-							testCases.push({name: el.name, args: d.args});
+							const [name, _options] = this.parseTestNameAndOptionsFromDecorator(el.functionDef);
+							testCases.push({name: name??el.name, args: d.args});
 							break;
 						}
 					}
 				}
 
 				testsGroups.push({
-					name: node.name,
+					name: name ?? node.name,
 					options,
 					testCases
 				})
@@ -98,18 +98,27 @@ export class TypescriptTestRunner extends TestRunner {
 		return testsGroups;
 	}
 
-	private parseTestDecoratorOptions(target: ClassDef|FunctionDef): TestGroupOptions|undefined {
+	private parseTestNameAndOptionsFromDecorator(target: ClassDef|FunctionDef): [string?, TestGroupOptions?] {
 		if (!json5) throw new Error("Cannot statically parse decorator params, json5 module not available (TODO)");
 		for (const d of target.decorators??[]) {
 			if (d.name == "Test") {
+				let name: string|undefined
+				// name
+				if (d.args?.[0] && d.args[0][0] != "{" && d.args[0][0] != "[") {
+					name = d.args[0].slice(1,-1); // remove string quotes
+				}
+
+				// options
 				for (let i = 0; i<=1; i++) {
-					if (d.args?.[i][0] == "{") {
+					if (d.args?.[i]?.[0] == "{") {
 						const options = json5.parse(d.args[i]);
-						return options;
+						return [name, options];
 					}
 				}
+				return [name, undefined]
 			}
 		}
+		return [undefined, undefined]
 	}
 
 	protected async handleLoad(context: URL, initOptions: TestRunner.InitializationOptions) {
@@ -151,7 +160,7 @@ export class TypescriptTestRunner extends TestRunner {
 			supranet_connect: TestManager.SUPRANET_CONNECT.toString()
 		};
 
-		this.worker = new Worker(path, {
+		this.worker = new Worker(path.toString()+"?c="+(this.count++), {
 			type: "module"
 		});
 
@@ -173,17 +182,16 @@ export class TypescriptTestRunner extends TestRunner {
 
 	// load tests in same processs
 	private async loadImport(context: URL, initOptions: TestRunner.InitializationOptions) {
-		const module = await import(context.toString() + "?c="+this.count++);
+		const module = await import(context.toString() + "?c="+(this.count++));
 
-		for (const [group_name, value] of Object.entries(module)) {
+		for (let [group_name, value] of Object.entries(module)) {
 			// test group
 			if (typeof value == "function" && (<any>value)[METADATA][TEST_GROUP_DATA]) {
 
-
 				// check group options ('worker' flag)
-				const group_options = <TestGroupOptions|undefined> ((<any>value)[METADATA]?.[TEST_GROUP_DATA]?.constructor?.[1]);
-
+				const [name, group_options] = <[string, TestGroupOptions]> ((<any>value)[METADATA]?.[TEST_GROUP_DATA]?.constructor) ?? [];
 				if (group_options?.flags?.includes("worker")) continue;
+				if (name) group_name = name;
 
 				await TestManager.registerTestGroup(context, group_name);
 

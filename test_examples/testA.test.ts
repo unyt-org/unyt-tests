@@ -4,15 +4,15 @@ import { Test, Assert } from "../testing/test.ts";
 	runConditions: {
 		runtime: ['node']
 	},
-	flags: ['wo rker']
+	flags: ['worker']
 }) export class JSTestGroup1 {
 	
 	@Test([
-		[1,2], 
+		[1,20], 
 		[2,4], 
 		[3,6]
 	]) 
-	firstTest(a:number, b:number) {
+	async firstTest(a:number, b:number) {
 		Assert.equals(a*2, b)
 	}
 
@@ -21,9 +21,8 @@ import { Test, Assert } from "../testing/test.ts";
 	}
 }
 
-@Test({
-	flags: ['wor ker', 'x']
-}) export class JSTestGroup2 {
+
+@Test export class JSTestGroup2 {
 	
 	@Test([
 		[()=>{throw 'x'}], 
@@ -41,3 +40,8 @@ import { Test, Assert } from "../testing/test.ts";
 		Assert.equals(1,1)
 	}
 }
+
+@Test("a test group cool") export class JSTestGroup3 {}
+@Test("a test group cool yei") export class JSTestGroup4 {}
+@Test("a test group cool yei22") export class JSTestGroup5 {}
+@Test("a test group cool yei3") export class JSTestGroup6 {}

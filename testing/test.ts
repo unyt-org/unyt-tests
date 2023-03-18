@@ -66,9 +66,11 @@ async function registerTests(group_name:string, value:Function){
     await initialized; // wait for init
 
     // check group options ('worker' flag)
-    const group_options = <TestGroupOptions|undefined> ((<any>value)[METADATA]?.[TEST_GROUP_DATA]?.constructor?.[1]);
+
+    const [name, group_options] = <[string, TestGroupOptions]> ((<any>value)[METADATA]?.[TEST_GROUP_DATA]?.constructor) ?? [];
     if (!group_options?.flags?.includes("worker")) return;
-    
+    if (name) group_name = name;
+
     await TestManager.registerTestGroup(ENV.context!, group_name);
 
     const test_case_promises:Promise<void>[] = []

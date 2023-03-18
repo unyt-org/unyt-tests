@@ -44,6 +44,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
 
         const promises = [];
         for (const file of files) {
+
             const runner = TestRunner.getRunnerForFile(file)
             if (runner) {
                 if (runImmediately) this.contextsToRunImmediately.add(file.toString())

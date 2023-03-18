@@ -79,7 +79,10 @@ export abstract class TestRunner {
 					throw new Error("could not statically analyze " + context);
 				}
 			}
-			if (options.initLive) await this.initLive(context, reloadIfAlreadyLive);
+			if (options.initLive) {
+				await this.initLive(context, reloadIfAlreadyLive);
+				return;
+			}
 		} catch (e)  {
 			logger.error("Error starting test environment", e)
 		}

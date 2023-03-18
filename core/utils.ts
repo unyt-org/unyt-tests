@@ -30,14 +30,21 @@ export async function getTestFilesFromPaths(paths:string[]) {
 }
 
 
+const lastUpdates = new Map<string, number>()
+
 export async function watchFiles(paths:Path[], handler:(path:Path)=>void) {
 
 	for await (const event of Deno.watchFs(paths.map(p=>p.pathname), {recursive: true})) {
 		try {
 			for (const path of event.paths) {
+				const time = Date.now()
+				if (lastUpdates.has(path) && (time - lastUpdates.get(path)! < 200)) {
+					continue;
+				}
+				lastUpdates.set(path, time);
 				const src_path = new Path(path);
-				logger.info("#color(grey)file update: " + src_path);
-				handler(src_path);
+				logger.debug("file update: " + src_path);
+				setTimeout(()=>handler(src_path), 5)
 			}
 		}
 		catch (e) {

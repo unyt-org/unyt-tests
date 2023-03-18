@@ -13,23 +13,23 @@ extension test (
 			assert (x matches <Set>)()
 		),
 
-		"third test": assert (
+		/*"third test": assert (
 			yeet "Todo implement"
-		),
+		),*/
 
 		"fourth test": assert (
 			val obj = {x: 42};
 			assert (obj.x == 42)()
 		),
 
-		"fifth test": assert (
+		/*"fifth test": assert (
 			val obj = {x: 42};
 			Assert.hasProperty(obj, "x")
 		),
 
 		"sixth test": assert (
 			1 == 2
-		)
-
+		)*/
+		
 	)
 );
