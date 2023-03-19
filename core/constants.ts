@@ -4,4 +4,13 @@ export const SUPPORTED_REPORT_TYPES = [
 	'junit'
 ]
 
-export const getBoxWidth = () => Math.min(Deno.consoleSize().columns, 140);
+const DEFAULT_BOX_WIDTH = 140;
+
+export const getBoxWidth = () => {
+	try {
+		return Math.min(Deno.consoleSize().columns, DEFAULT_BOX_WIDTH);
+	} 
+	catch {
+		return DEFAULT_BOX_WIDTH
+	}
+}

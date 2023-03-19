@@ -22,7 +22,7 @@ export async function getTestFilesFromPaths(paths:string[]) {
 		}
 		catch (e){
 			logger.error("Invalid path for test files: " + getPath(path, true))
-			Deno.exit();
+			Deno.exit(1);
 		}
 	}
 	return files;

@@ -3,6 +3,7 @@ import { AssertionError } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
 import { getBoxWidth } from "./constants.ts";
 import { Path } from "unyt_node/path.ts";
+import { getCallerInfo } from "unyt_core/utils/caller_metadata.ts";
 
 export enum TEST_CASE_STATE {
 	INITIALIZED,
@@ -389,8 +390,10 @@ export interface TestGroupOptions {
 	}
 
 	private formatError(error:any) {
-		if (error instanceof AssertionError) return error.message;
-		else if (error instanceof Error) return error.constructor.name + ': ' + error.message;
+		if (error instanceof Error) {
+			const message = error instanceof AssertionError ? error.message : error.constructor.name + ': ' + error.message;
+			return message;
+		}
 		else if (typeof error == "string") return error;
 		else return Datex.Runtime.valueToDatexString(error,false);
 	}

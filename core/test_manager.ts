@@ -29,7 +29,12 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
     static async connect() {
         this.SUPRANET_CONNECT = true;
         try {
-            await Datex.Supranet.connect(undefined, false);
+            await Promise.race([
+                Datex.Supranet.connect(undefined, false),
+                new Promise((_,reject)=>setTimeout(()=>{
+                    reject("timeout")
+                }, 3000))
+            ])
         } catch {
             logger.warn("could not connect to the supranet");
         }

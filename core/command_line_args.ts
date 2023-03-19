@@ -3,6 +3,19 @@ import { LOG_FORMATTING } from 'unyt_core/datex_all.ts';
 import { logger } from './utils.ts';
 import { SUPPORTED_REPORT_TYPES } from './constants.ts';
 import { exitWithError } from './utils.ts';
+import { CommandLineOptions } from "https://dev.cdn.unyt.org/command-line-args/main.ts"
+
+
+// TODO
+export const commandLineOptions = new CommandLineOptions("unyt Tests", "Extensible testing library for DATEX Script and JavaScript/TypeScript");
+const paths = commandLineOptions.option("paths", {aliases:["p"], multiple: true, placeholder: "...PATHS", description: "Paths for the test files to run"})
+const short = commandLineOptions.option("short", {aliases:["s"], type: "boolean", default: false, description:"Show test results in a compact overview"})
+const watch = commandLineOptions.option("watch", {aliases:["w"], type: "boolean", description: "Rerun and update the test result live in the console when a test file is changed"})
+const reporttype = commandLineOptions.option("reporttype", {default:"junit",  placeholder: "TYPE", description: "type to use for generating the report files (default: junit)"})
+const reportfile = commandLineOptions.option("reportfile", {aliases:["r"], placeholder:"PATH", description: "Path for the generated report file"})
+const color = commandLineOptions.option("color", {default: "rgb", placeholder: "rgb|simple|none", description: "Color mode"})
+const verbose = commandLineOptions.option("verbose", {aliases:["v"], type:"boolean", overload: true, description: "Show additional debug logs"})
+
 
 type command_line_options = {
 	reporttype?: string,

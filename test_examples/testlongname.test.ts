@@ -7,10 +7,15 @@ import { Test, Assert } from "../testing/test.ts";
 	flags: ['workerx']
 }) export class JSTestGroup1 {
 	
+	throwing() {
+		throw new Error("2")
+
+	}
+
 	@Test([
 		[1,2]
 	]) 
-	async firstTest(a:number, b:number) {
+	firstTest(a:number, b:number) {
 		Assert.equals(a*2, b)
 	}
 

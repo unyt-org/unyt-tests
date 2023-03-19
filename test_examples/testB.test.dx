@@ -1,6 +1,6 @@
 use Assert from #public;
 
-extension test (
+plugin test (
 	 
 	"DATEX Test Group 1": (
 
