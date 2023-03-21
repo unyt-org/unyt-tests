@@ -21,6 +21,7 @@ export async function getTestFilesFromPaths(paths:string[]) {
 				files.push(file);
 		}
 		catch (e){
+			console.log(e);
 			logger.error("Invalid path for test files: " + getPath(path, true))
 			Deno.exit(1);
 		}
@@ -31,20 +32,46 @@ export async function getTestFilesFromPaths(paths:string[]) {
 
 const lastUpdates = new Map<string, number>()
 
-export async function watchFiles(paths:Path[], handler:(path:Path)=>void) {
+export async function watchFiles(paths:(Path|string)[], updateHandler:(path:Path)=>void, removeHandler:(path:Path)=>void) {
 
-	for await (const event of Deno.watchFs(paths.map(p=>p.pathname), {recursive: true})) {
+	for await (const event of Deno.watchFs(paths.map(p=>p instanceof Path ? p.pathname : p), {recursive: true})) {
 		try {
-			for (const path of event.paths) {
-				const time = Date.now()
-				if (lastUpdates.has(path) && (time - lastUpdates.get(path)! < 200)) {
-					continue;
+			if (event.kind == "create" || event.kind == "modify") {
+				for (const _path of event.paths) {
+					const path = new Path(_path);
+					// file does not exists or not a test file
+					if (!path.fs_exists) {
+						logger.debug("file removed: " + path);
+						removeHandler(path);
+						continue;
+					}
+					if (!path.fs_exists || (!path.fs_is_dir && !path.hasFileExtension(...TestRunner.availableTestSpecificExtensions))) continue;
+					
+					for (const childPath of await getTestFilesFromPaths([path.toString()])) {
+						console.log("=> " + childPath);
+						const time = Date.now()
+						if (lastUpdates.has(childPath.toString()) && (time - lastUpdates.get(childPath.toString())! < 200)) {
+							continue;
+						}
+						lastUpdates.set(childPath.toString(), time);
+						if (!childPath.fs_is_dir) {
+							logger.debug("file update: " + childPath);
+							setTimeout(()=>updateHandler(childPath), 5)
+						}
+					}
+					
 				}
-				lastUpdates.set(path, time);
-				const src_path = new Path(path);
-				logger.debug("file update: " + src_path);
-				setTimeout(()=>handler(src_path), 5)
 			}
+			else if (event.kind == "remove") {
+				for (const _path of event.paths) {
+					const path = new Path(_path);
+					if (!path.fs_is_dir) {
+						logger.debug("file removed: " + path);
+						removeHandler(path)
+					}
+				}
+			}
+			
 		}
 		catch (e) {
 			console.log("file update error:",e);

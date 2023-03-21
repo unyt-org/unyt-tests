@@ -1,7 +1,7 @@
 import { Datex } from "unyt_core";
 import { expose, Logger, LOG_LEVEL, scope } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
-import { TestGroup, type TestGroupOptions, TEST_CASE_STATE } from "./test_case.ts";
+import { TestGroup, type TestGroupOptions, TEST_CASE_STATE, TestCase } from "./test_case.ts";
 import { TestRunner } from "./test_runner.ts";
 
 Logger.development_log_level = LOG_LEVEL.WARNING; // log level for debug logs (suppresses most)
@@ -18,6 +18,10 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
     static SUPRANET_CONNECT = false;
 
     private static contextsToRunImmediately = new Set<string>();
+
+    static get loadedContexts() {
+        return [...this.tests.keys()].map(p=>new URL(p))
+    }
 
     // init local endpoint
     static async init() {
@@ -38,6 +42,11 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
         } catch {
             logger.warn("could not connect to the supranet");
         }
+    }
+
+    static unloadTest(file:URL) {
+        this.resetContextPromises([file]);
+        this.tests.delete(file.toString());
     }
 
     // load matching test contexts for files
@@ -102,7 +111,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
 
 
     // print all reports for all groups of the contexts and exit with status code
-    static printReportAndExit(contexts:URL[], short = false) {
+    static printReportAndExit(contexts:URL[] = this.loadedContexts, short = false) {
         const successful = this.printReport(contexts, short);
         if (globalThis.Deno) {
             if (successful) Deno.exit()
@@ -111,15 +120,13 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
     }
 
     // print all reports for all groups of the contexts
-    static printReport(contexts:URL[], short = false) {
+    static printReport(contexts:URL[] = this.loadedContexts, short = false, logger?:Datex.Logger) {
         if (short) console.log(""); // margin top
 
         let successful = true;
         for (const context of contexts) {
-            logger.debug("groups",this.tests)
-
             for (const group of this.tests.get(context.toString())?.values()??[]) {
-                group.printReport(short);
+                group.printReport(short, logger);
                 if (group.state != TEST_CASE_STATE.SUCCESSFUL) successful = false;
             }
         }
@@ -138,12 +145,11 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
      * @param contexts context path array
      * @returns Promise that resolves when all tests were executed
      */
-    static async runTests(contexts:URL[]) {
+    static async runTests(contexts:URL[] = TestManager.loadedContexts, reloadIfAlreadyLive = false) {
         const promises = [];
         for (const context of contexts) {
             // make sure context gets live
-            TestRunner.getRunnerForFile(context)!.initLive(context, false);
-            await this.waitForContextLoad(context);
+            await this.initContext(context, reloadIfAlreadyLive);
             for (const [_name, group] of this.tests.get(context.toString())??[]) {
                 promises.push(group.run())
             }
@@ -151,9 +157,14 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
         await Promise.all(promises);
     }
 
+    static async initContext(context:URL, reloadIfAlreadyLive = false){
+        this.resetContextPromises([context]);
+        TestRunner.getRunnerForFile(context)!.initLive(context, reloadIfAlreadyLive);
+        await this.waitForContextLoad(context);
+    }
 
     // wait for all contexts and run all tests
-    static async finishTestExecutions(contexts:URL[]) {
+    static async finishTestExecutions(contexts:URL[] = TestManager.loadedContexts) {
         // wait until all contexts loaded and tests run
         await Promise.all(contexts.map(context => this.finishTestExecution(context)))
     }
@@ -168,6 +179,15 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
         for (const group of this.tests.get(context.toString())?.values()??[]) {
             await group.finishAllTests();
         }
+    }
+    
+    // trigger on test case state change
+    private static testCaseChangeHandlers = new Set<(test:TestCase)=>void>();
+    public static onTestCaseStateChange(handler:(test:TestCase)=>void) {
+        this.testCaseChangeHandlers.add(handler)
+    }
+    static handleTestCaseStateChange(test:TestCase) {
+        for (const handler of this.testCaseChangeHandlers) handler(test);
     }
 
     private static context_promises = new Map<string, Promise<void>>();
@@ -189,7 +209,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
         }
     }
 
-    private static resetContextPromises(contexts: URL[]) {
+    private static resetContextPromises(contexts: URL[] = TestManager.loadedContexts) {
         for (const context of contexts) {
             const context_string = context.toString();
             this.context_promises.delete(context_string)

@@ -31,7 +31,7 @@ export class TypescriptTestRunner extends TestRunner {
 		await Deno.writeTextFile(mockFile, "")
 
 		const docs = await doc(context.toString(), {
-			includeAll: true,
+			// includeAll: true,
 			resolve: (specifier:string) => {
 				// console.log("resolve " +specifier, mockFile.toString());
 				return mockFile.toString()
@@ -186,7 +186,7 @@ export class TypescriptTestRunner extends TestRunner {
 
 		for (let [group_name, value] of Object.entries(module)) {
 			// test group
-			if (typeof value == "function" && (<any>value)[METADATA][TEST_GROUP_DATA]) {
+			if (typeof value == "function" && (<any>value)?.[METADATA]?.[TEST_GROUP_DATA]) {
 
 				// check group options ('worker' flag)
 				const [name, group_options] = <[string, TestGroupOptions]> ((<any>value)[METADATA]?.[TEST_GROUP_DATA]?.constructor) ?? [];

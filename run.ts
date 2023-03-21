@@ -50,7 +50,7 @@ if (options.watch) {
 
 // run
 await TestManager.loadTests(files); // init test contexts for all test files // , {initLive: false, analyizeStatic: false}
-await TestManager.runTests(files);
+await TestManager.runTests();
 
 // export report?
 exportReportFile();
@@ -58,30 +58,39 @@ exportReportFile();
 // print report
 if (options.watch) {
 	updateContent();
-	watchFiles(files, async (path)=> {
-		logger.clear(true);
-		printHeaderInfo(files);
-		await TestManager.loadTests([path], {initLive: true, analyizeStatic: true}, true, true); // init test contexts for all test files
-		updateContent();
-		exportReportFile();
-	})
+	watchFiles(options.paths, 
+		async (path)=> {
+			logger.clear(true);
+			console.log("update " + path)
+			printHeaderInfo(TestManager.loadedContexts);
+			await TestManager.loadTests([path], {initLive: true, analyizeStatic: true}, true, true); // init test contexts for all test files
+			updateContent();
+			exportReportFile();
+		}, 
+		(path)=>{
+			TestManager.unloadTest(path);
+			printHeaderInfo(TestManager.loadedContexts);
+			updateContent();
+			exportReportFile();
+		}
+	)
 }
 
 else {
-	TestManager.printReportAndExit(files, options.short); // print to stdout
+	TestManager.printReportAndExit(TestManager.loadedContexts, options.short); // print to stdout
 }
 
 
 function exportReportFile() {
 	// export report?
 	if (options.reportfile) {
-		if (options.reporttype == "junit") new JUnitReportGenerator(files).generateReport(getPath(options.reportfile))
+		if (options.reporttype == "junit") new JUnitReportGenerator(TestManager.loadedContexts).generateReport(getPath(options.reportfile))
 	}
 }
   
 
 function updateContent() {
 	logger.clear(true);
-	printHeaderInfo(files);
-	TestManager.printReport(files, options.short);
+	printHeaderInfo(TestManager.loadedContexts);
+	TestManager.printReport(TestManager.loadedContexts, options.short);
 }

@@ -4,7 +4,7 @@ import { Test, Assert } from "../testing/test.ts";
 	runConditions: {
 		runtime: ['node']
 	},
-	flags: ['workerx']
+	flags: ['chrome']
 }) export class JSTestGroup1 {
 	
 	throwing() {
@@ -15,7 +15,8 @@ import { Test, Assert } from "../testing/test.ts";
 	@Test([
 		[1,2]
 	]) 
-	firstTest(a:number, b:number) {
+	async firstTest(a:number, b:number) {
+		await new Promise(resolve=>setTimeout(resolve,3000))
 		Assert.equals(a*2, b)
 	}
 
@@ -46,5 +47,3 @@ import { Test, Assert } from "../testing/test.ts";
 
 @Test("a test group cool") export class JSTestGroup3 {}
 @Test("a test group cool yei") export class JSTestGroup4 {}
-@Test("a test group cool yei22") export class JSTestGroup5 {}
-@Test("a test group cool yei3") export class JSTestGroup6 {}
