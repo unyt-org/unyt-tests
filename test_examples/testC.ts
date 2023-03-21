@@ -3,7 +3,7 @@ import { Test, Assert } from "../testing/test.ts";
 @Test export class OtherTest {
 	
 	@Test firstTest() {
-		Assert.equals(4,4)
+		Assert.equals(4,5)
 	}
 
 	@Test secondTest() {

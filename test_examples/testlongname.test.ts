@@ -2,9 +2,9 @@ import { Test, Assert } from "../testing/test.ts";
 
 @Test({
 	runConditions: {
-		runtime: ['node']
+		runtime: ['browser']
 	},
-	flags: ['chrome']
+	flags: ['worker']
 }) export class JSTestGroup1 {
 	
 	throwing() {
@@ -16,7 +16,7 @@ import { Test, Assert } from "../testing/test.ts";
 		[1,2]
 	]) 
 	async firstTest(a:number, b:number) {
-		await new Promise(resolve=>setTimeout(resolve,3000))
+		// await new Promise(resolve=>setTimeout(resolve,3000))
 		Assert.equals(a*2, b)
 	}
 
