@@ -74,7 +74,7 @@ export async function watchFiles(paths:(Path|string)[], updateHandler:(path:Path
 			
 		}
 		catch (e) {
-			console.log("file update error:",e);
+			// console.log("file update error:",e);
 		}
 	}
 }
