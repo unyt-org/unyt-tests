@@ -4,8 +4,8 @@ import { Test, Assert } from "../testing/test.ts";
 	runConditions: {
 		runtime: ['browser']
 	},
-	flags: ['worker']
-}) export class JSTestGroup1 {
+	flags: ['wosrker']
+}) export class JSTestGroup1A {
 	
 	throwing() {
 		throw new Error("2")
@@ -26,7 +26,7 @@ import { Test, Assert } from "../testing/test.ts";
 }
 
 
-@Test export class JSTestGroup2 {
+@Test export class JSTestGroup2A {
 	
 	@Test([
 		[()=>{throw 'x'}], 
@@ -40,7 +40,7 @@ import { Test, Assert } from "../testing/test.ts";
 		Assert.equals(1,1)
 	}
 
-	@Test secondTest3() {
+	@Test secondTest_() {
 		Assert.equals(1,1)
 	}
 }

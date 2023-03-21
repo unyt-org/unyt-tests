@@ -153,10 +153,11 @@ function _Test(value:any, name:context_name, kind:context_kind, _is_static:boole
     else if (typeof params[2] == "object" && !(params[2] instanceof Array)) options = params[2]
 
     // name
-    const test_name = typeof params[0] == "string" ? params[0] : name;
+    const test_name = typeof params[0] == "string" ? params[0] : ((<string>name)?.replace(/[0-9]$/, ''))
     
     if (kind == 'class') {
-        const group_name = <string> test_name;
+        // workaround: deno compiler sometimes adds random numbers to function names
+        const group_name = (<string> test_name);;
 
         setMetadata(TEST_GROUP_DATA, [group_name, options]);
 

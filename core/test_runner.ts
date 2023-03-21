@@ -84,7 +84,9 @@ export abstract class TestRunner {
 				return;
 			}
 		} catch (e)  {
-			logger.error("Error starting test environment", e)
+			logger.error("Error starting test environment:" + (e?.message??e))
+			if (globalThis.Deno) Deno.exit(1);
+			else throw "Error starting test environment"
 		}
 	}
 

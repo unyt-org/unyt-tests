@@ -75,13 +75,14 @@ export class TypescriptTestRunner extends TestRunner {
 		for (const node of docNodes) {
 			if (node.kind == "class") {
 				const testCases = [];
-				const [name, options] = this.parseTestNameAndOptionsFromDecorator(node.classDef);
-
+				const [groupName, options] = this.parseTestNameAndOptionsFromDecorator(node.classDef);
+				if ((groupName??node.name)?.match(/[0-9]$/)) throw new Error("Numbers at the end of @Test class names are not allowed (at "+(groupName??node.name)+")");
 				// get class methods (test cases)
 				for (const el of node.classDef.methods) {
 					for (const d of el.functionDef.decorators??[]) {
 						if (d.name == "Test") {
 							const [name, _options] = this.parseTestNameAndOptionsFromDecorator(el.functionDef);
+							if ((name??el.name).match(/[0-9]$/)) throw new Error("Numbers at the end of @Test method names are not allowed (at "+(groupName??node.name)+"."+(name??el.name)+")");
 							testCases.push({name: name??el.name, args: d.args});
 							break;
 						}
@@ -89,7 +90,7 @@ export class TypescriptTestRunner extends TestRunner {
 				}
 
 				testsGroups.push({
-					name: name ?? node.name,
+					name: groupName??node.name,
 					options,
 					testCases
 				})
