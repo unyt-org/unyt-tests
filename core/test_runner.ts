@@ -100,6 +100,7 @@ export abstract class TestRunner {
 		logger.debug `loading test context: ${context}`;
 		this.#liveContexts.add(context.toString())
 		const loaded = await this.handleLoad(context, TestManager.getInitOptionsForContext(context) ?? TestRunner.getDefaultInitOptions());
+		logger.debug `loaded test context: ${context}`;
 		if (!loaded) {
 			logger.error("could not load test file " + context);
 			globalThis.Deno?.exit(1);

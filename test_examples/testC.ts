@@ -1,4 +1,4 @@
-import { Test, Assert } from "../testing/test.ts";
+import { Test, Assert } from "unyt_tests/testing/test.ts";
 
 @Test export class OtherTest {
 	

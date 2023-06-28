@@ -4,11 +4,11 @@ plugin test (
 	 
 	"DATEX Test Group 1": (
 
-		"first test": assert (
+		"first test dx": assert (
 			1 == 1
 		),
 
-		"second test": assert (
+		"second test dx": assert (
 			val x = <Set> [1,2];
 			assert (x matches <Set>)()
 		),
@@ -17,7 +17,7 @@ plugin test (
 			yeet "Todo implement"
 		),*/
 
-		"fourth test": assert (
+		"fourth test dx": assert (
 			val obj = {x: 42};
 			assert (obj.x == 42)()
 		),

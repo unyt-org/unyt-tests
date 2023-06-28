@@ -203,6 +203,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
 
         if (this.context_promises.has(context_string)) return this.context_promises.get(context_string);
         else {
+            this.context_resolves.delete(context_string);
             const promise = new Promise<void>(resolve=>this.context_resolves.set(context_string, resolve));
             this.context_promises.set(context_string, promise)
             return promise;

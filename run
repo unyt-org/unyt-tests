@@ -1,4 +1,4 @@
 #!/bin/bash
 
 # run tests
-deno run -A --reload --import-map https://dev.cdn.unyt.org/unyt_tests/importmap.dev.json https://dev.cdn.unyt.org/unyt_tests/run.ts $*
+deno run -Aqr --import-map https://dev.cdn.unyt.org/unyt_tests/importmap.dev.json https://dev.cdn.unyt.org/unyt_tests/run.ts $*

@@ -186,8 +186,10 @@ export class TypescriptTestRunner extends TestRunner {
 		const module = await import(context.toString() + "?c="+(this.count++));
 
 		for (let [group_name, value] of Object.entries(module)) {
+			
 			// test group
 			if (typeof value == "function" && (<any>value)?.[METADATA]?.[TEST_GROUP_DATA]) {
+
 
 				// check group options ('worker' flag)
 				const [name, group_options] = <[string, TestGroupOptions]> ((<any>value)[METADATA]?.[TEST_GROUP_DATA]?.constructor) ?? [];
@@ -202,12 +204,12 @@ export class TypescriptTestRunner extends TestRunner {
 					// @ts-ignore
 					const test_case_data = <[test_name:string, params:any[][], options:TestGroupOptions,  value:(...args: any) => void | Promise<void>]>value.prototype[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
 			
-
 					// @ts-ignore handle constructor
 					if (test_case_data == Object) continue;
 			
 					const timeout = value.prototype[METADATA]?.[TIMEOUT]?.public?.[k] ?? DEFAULT_TIMEOUT;
 					if (test_case_data) {
+						
 						await TestManager.bindTestCase(
 							context,
 							group_name, 

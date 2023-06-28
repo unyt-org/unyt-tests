@@ -9,12 +9,20 @@
  */
 
 import { Datex, remote, scope, to } from "unyt_core";
-import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL } from "unyt_core/datex_all.ts";
+import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL, logger } from "unyt_core/datex_all.ts";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.ts";
 import type { context_kind, context_meta_getter, context_meta_setter, context_name } from "./legacy_decorators.ts";
 import { TestGroupOptions } from "../core/test_case.ts";
 
 export * from "./assertions.ts";
+
+// @ts-ignore check not duplicate test libraries
+if (globalThis._unyt_test) {
+    logger.error(`Two conflicting versions of the unyt-tests library were imported from different sources: ${globalThis._unyt_test} and ${import.meta.url.replace('testing/test.ts', '')}`)
+    throw new Error(`unyt-test library conflict`)
+}
+// @ts-ignore
+globalThis._unyt_test = import.meta.url.replace('testing/test.ts', '');
 
 Logger.development_log_level = LOG_LEVEL.WARNING;
 Logger.production_log_level = LOG_LEVEL.DEFAULT;

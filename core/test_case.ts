@@ -114,10 +114,12 @@ const NOBOX = {
 		this.results = [];
 
 		for (const variation of (this.params.length == 0 ? [[]] : this.params)) {
-			logger.debug("running test ?", this.name);
+			logger.debug("running test ?", this.formatted_name);
 			const t0 = performance.now(); // TODO execution time without DATEX transmission duration?
 
-			if (!this.func) throw new Error("Test Case "+this.formatted_name+" cannot be executed")
+			if (!this.func) {
+				throw new Error("Test Case "+this.formatted_name+" cannot be executed")
+			}
 
 			try {
 				await this.func(...variation);
