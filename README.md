@@ -50,7 +50,7 @@ Multiple Test files
 ```
 
 ### Options
- * `--color` or `-c`: Set the color mode of the output ("rgb", "simple", or "none2)
+ * `--color` or `-c`: Set the color mode of the output ("rgb", "simple", or "none")
  * `--reporttype`: Set the type for the report file generation, currently supported types: "junit"
  * `--reportfile`: Set the path for the report output. When this option is set, a report is generated after all tests are finished.
  * `--watch` or `-w`: TODO
