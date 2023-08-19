@@ -5,3 +5,4 @@ node_modules
 *.js
 **/*.js.map
 *.js.map
+test_examples/rust/target

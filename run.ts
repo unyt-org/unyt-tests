@@ -10,6 +10,7 @@ import { getTestFiles, getPath, logger, printHeaderInfo, getTestFilesFromPaths, 
 // enabled test runners
 import "./runners/typescript_test_runner.ts";
 import "./runners/datex_test_runner.ts";
+import "./runners/rust_test_runner.ts";
 
 const options = getCommandLineOptions();
 

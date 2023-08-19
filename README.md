@@ -55,4 +55,8 @@ deno run -Aq --import-map [IMPORT_MAP] https://dev.cdn.unyt.org/unyt_tests/run.t
 ```
 
 ## Development
-Development follows the flow of unyt_core and uix
+
+To test the test library locally, run
+```bash
+deno run -Aq --import-map ./importmap.local.json ./run.ts test_examples/
+```
