@@ -53,6 +53,12 @@ See <RUN.md> or run
 ```bash
 deno run -Aq --import-map [IMPORT_MAP] https://dev.cdn.unyt.org/unyt_tests/run.ts -h
 ```
+ * `--color` or `-c`: Set the color mode of the output ("rgb", "simple", or "none")
+ * `--reporttype`: Set the type for the report file generation, currently supported types: "junit"
+ * `--reportfile`: Set the path for the report output. When this option is set, a report is generated after all tests are finished.
+ * `--watch` or `-w`: TODO
+ * `--verbose` or `-v`: verbose output for debugging purposes
+
 
 ## Development
 
