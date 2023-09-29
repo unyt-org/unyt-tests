@@ -61,6 +61,7 @@ if (options.watch) {
 	watchFiles(options.paths, 
 		async (path)=> {
 			logger.clear(true);
+			testLogger.clear(); // TODO: optionally remove to keep history of logs?
 			console.log("update " + path)
 			printHeaderInfo(TestManager.loadedContexts);
 			await TestManager.loadTests([path], {initLive: true, analyizeStatic: true}, true, true); // init test contexts for all test files

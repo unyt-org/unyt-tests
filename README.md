@@ -1,6 +1,16 @@
-# Unyt Test library
+# Unyt Test Library
 
-This test library supports `.ts`, `.js` and `.dx` test files.
+Test runner for backend + frontend 
+with integrated watch mode and report file generation.
+
+Used in [UIX](https://uix.unyt.org).
+
+Currently supported languages:
+ * TypeScript
+ * JavaScript
+ * [DATEX](https://datex.unyt.org/)
+
+![Screenshot](./res/screenshot1.png)
 
 ## Write Tests for TypeScript and JavaScript
 
@@ -37,15 +47,18 @@ import { Test, Timeout } from "unyt_tests/testing/test.ts"
 
 ## Run tests in the command line
 
-Test directory
+### Automatically detect tests in current working directory:
 ```bash
-deno run -Aq --import-map [IMPORT_MAP] https://dev.cdn.unyt.org/unyt_tests/run.ts [TEST_DIRECTORY]
+deno run -A --import-map http://dev.cdn.unyt.org/importmap.json https://dev.cdn.unyt.org/unyt_tests/run.ts -w
 ```
-As a default IMPORT_MAP path, `https://dev.cdn.unyt.org/unyt_tests/importmap.dev.json` can be used.
+ 
+With the `-w` flag, the tests are run in watch mode - when you update a test file, the tests are automatically reevaluated.
 
-Multiple Test files
+As a default import map, `https://dev.cdn.unyt.org/importmap.json` can be used, but you can also use a different import map.
+
+### Specifying test files
 ```bash
-deno run -Aq --import-map [IMPORT_MAP] https://dev.cdn.unyt.org/unyt_tests/run.ts testA.ts testB.js testC.js testD.dx
+deno run -Aq --import-map [IMPORT_MAP] https://dev.cdn.unyt.org/unyt_tests/run.ts -w testA.ts testB.js testC.js testD.dx
 ```
 
 ### Options
@@ -56,9 +69,23 @@ deno run -Aq --import-map [IMPORT_MAP] https://dev.cdn.unyt.org/unyt_tests/run.t
  * `--color` or `-c`: Set the color mode of the output ("rgb", "simple", or "none")
  * `--reporttype`: Set the type for the report file generation, currently supported types: "junit"
  * `--reportfile`: Set the path for the report output. When this option is set, a report is generated after all tests are finished.
- * `--watch` or `-w`: TODO
+ * `--watch` or `-w`: Run in watch mode, tests get automatically executed when a test file is updated
  * `--verbose` or `-v`: verbose output for debugging purposes
 
+
+## Logging
+
+You can import the `testLogger` from `unyt_tests/core/logger.ts` to show logs in the console even in watch mode.
+
+```ts
+import { testLogger } from "unyt_tests/core/logger.ts";
+
+@Test export class MyTests {
+	@Test firstTest() {
+		testLogger.log("hello");
+	}
+}
+```
 
 ## Development
 

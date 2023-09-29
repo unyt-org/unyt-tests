@@ -50,7 +50,7 @@ export async function watchFiles(paths:(Path|string)[], updateHandler:(path:Path
 					if (!path.fs_exists || (!path.fs_is_dir && !path.hasFileExtension(...TestRunner.availableTestSpecificExtensions))) continue;
 					
 					for (const childPath of await getTestFilesFromPaths([path.toString()])) {
-						console.log("=> " + childPath);
+						// console.log("=> " + childPath);
 						const time = Date.now()
 						if (lastUpdates.has(childPath.toString()) && (time - lastUpdates.get(childPath.toString())! < 200)) {
 							continue;
