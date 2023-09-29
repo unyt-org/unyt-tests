@@ -1,10 +1,11 @@
 import { sync, property, constructor, Datex } from "unyt_core";
-import { AssertionError } from "unyt_core/datex_all.ts";
+import { AssertionError, ESCAPE_SEQUENCES } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
 import { getBoxWidth } from "./constants.ts";
 import { Path } from "unyt_node/path.ts";
 import { getCallerInfo } from "unyt_core/utils/caller_metadata.ts";
 import { TestManager } from "./test_manager.ts";
+import { fitText } from "./fitText.ts";
 
 export enum TEST_CASE_STATE {
 	INITIALIZED,
@@ -288,6 +289,7 @@ export interface TestGroupOptions {
 		if (short) this.printReportShort(logger)
 		else this.printReportLong(logger)
 	}
+	
 
 	printReportLong(_logger = logger) {
 
@@ -312,7 +314,14 @@ export interface TestGroupOptions {
 
 		// top box with file name
 		_logger.plain `#color(white)${box.VERTICAL}${' '.repeat(innerWidth)}${box.VERTICAL}`
-		_logger.plain `#color(white)${box.VERTICAL}   File: #color(grey)${this.context.toString().replace("file://","").padEnd(innerWidth-9)}#color(white)${box.VERTICAL}`
+		_logger.plain `${fitText(`${ESCAPE_SEQUENCES.WHITE}File: ${ESCAPE_SEQUENCES.GREY}${this.context.toString().replace("file://","")}${ESCAPE_SEQUENCES.WHITE}`, {
+			lineWidth: width,
+			paddingLeft: i => i == 0 ? 3 : 9,
+			paddingRight: 1,
+			lineStartMark: ESCAPE_SEQUENCES.WHITE+box.VERTICAL+ESCAPE_SEQUENCES.GREY,
+			lineEndMark: ESCAPE_SEQUENCES.WHITE+box.VERTICAL,
+			wordWrap: "break"
+		})}`
 		if (this.endpoint && this.endpoint != Datex.LOCAL_ENDPOINT) _logger.plain `#color(white)${box.VERTICAL}   Endpoint: #color(grey)${this.endpoint.toString().padEnd(innerWidth-13)}#color(white)${box.VERTICAL}`
 		
 		if (this.test_cases.size) {

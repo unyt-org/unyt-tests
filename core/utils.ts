@@ -1,8 +1,10 @@
 import { Datex } from "unyt_core";
 import { client_type, ESCAPE_SEQUENCES, Logger, LOG_FORMATTING } from 'unyt_core/datex_all.ts';
-import { getBoxWidth, VERSION } from "./constants.ts";
+import { getBoxWidth } from "./constants.ts";
 import { Path } from "unyt_node/path.ts";
 import { TestRunner } from "./test_runner.ts";
+import { VERSION } from "./version.ts";
+import { fitText } from "./fitText.ts";
 
 export const logger = new Logger("Test Runner", true, client_type == "browser" ? LOG_FORMATTING.COLOR_RGB : LOG_FORMATTING.PLAINTEXT);
 
@@ -129,7 +131,8 @@ export function printHeaderInfo(files:URL[]){
 
 	logger.lock();
 
-	logger.plain `${main_color}╔═ [[ unyt tests ]]#reset ${VERSION}${main_color}${' '.padEnd(getBoxWidth()-25, '═')}╗
+
+	logger.plain `${main_color}╔═ [[ unyt tests ]]#reset ${VERSION}${main_color}${' '.padEnd(getBoxWidth()-17-VERSION.length, '═')}╗
 ${main_color}║${' '.repeat(getBoxWidth()-2)}║
 ${main_color}║  #color(white)Test Files:${' '.repeat(getBoxWidth()-15)}${main_color}║`
 

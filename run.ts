@@ -1,16 +1,15 @@
-import { Datex } from "unyt_core";
 import "unyt_core";
 import { Logger, LOG_LEVEL } from 'unyt_core/datex_all.ts';
 import { JUnitReportGenerator } from './report_generators/junit_report_generator.ts';
 import { getCommandLineOptions } from './core/command_line_args.ts';
 import { TestManager } from './core/test_manager.ts';
-import { getTestFiles, getPath, logger, printHeaderInfo, getTestFilesFromPaths, watchFiles } from './core/utils.ts';
-
+import { getPath, logger, printHeaderInfo, getTestFilesFromPaths, watchFiles } from './core/utils.ts';
 
 // enabled test runners
 import "./runners/typescript_test_runner.ts";
 import "./runners/datex_test_runner.ts";
 import "./runners/rust_test_runner.ts";
+import { testLogger } from "./core/logger.ts";
 
 const options = getCommandLineOptions();
 
@@ -34,7 +33,7 @@ printHeaderInfo(files);
 // handle updates
 if (options.watch) {
 	Deno.addSignalListener("SIGWINCH", () => {
-		updateContent()
+		updateContent(true)
    });
    
    let ongoingUpdate = false;
@@ -90,8 +89,11 @@ function exportReportFile() {
 }
   
 
+
 function updateContent() {
 	logger.clear(true);
 	printHeaderInfo(TestManager.loadedContexts);
 	TestManager.printReport(TestManager.loadedContexts, options.short);
+
+	(testLogger as any).render();
 }

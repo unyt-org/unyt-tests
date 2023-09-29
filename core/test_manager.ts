@@ -3,6 +3,7 @@ import { expose, Logger, LOG_LEVEL, scope } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
 import { TestGroup, type TestGroupOptions, TEST_CASE_STATE, TestCase } from "./test_case.ts";
 import { TestRunner } from "./test_runner.ts";
+import { testLogger } from "./logger.ts";
 
 Logger.development_log_level = LOG_LEVEL.WARNING; // log level for debug logs (suppresses most)
 Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (log all)
@@ -113,6 +114,7 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
     // print all reports for all groups of the contexts and exit with status code
     static printReportAndExit(contexts:URL[] = this.loadedContexts, short = false) {
         const successful = this.printReport(contexts, short);
+        testLogger.flush()
         if (globalThis.Deno) {
             if (successful) Deno.exit()
             else Deno.exit(1);

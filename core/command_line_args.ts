@@ -4,6 +4,7 @@ import { logger } from './utils.ts';
 import { SUPPORTED_REPORT_TYPES } from './constants.ts';
 import { exitWithError } from './utils.ts';
 import { CommandLineOptions } from "https://dev.cdn.unyt.org/command-line-args/main.ts"
+import { VERSION } from "./version.ts";
 
 
 // TODO
@@ -15,7 +16,13 @@ const reporttype = commandLineOptions.option("reporttype", {default:"junit", typ
 const reportfile = commandLineOptions.option("reportfile", {aliases:["r"], type:"string", placeholder:"PATH", description: "Path for the generated report file"})
 const color = commandLineOptions.option("color", {default: "rgb", type:"string", placeholder: "rgb|simple|none", description: "Color mode"})
 const verbose = commandLineOptions.option("verbose", {aliases:["v"], type:"boolean", overload: true, description: "Show additional debug logs"})
+const version = commandLineOptions.option("version", {type:"boolean", description: "Show the curren unyt-tests version"})
 
+
+if (version) {
+	console.log(`unyt-tests ${VERSION == "beta" ? "beta" : "v." + VERSION} (${new URL("../", import.meta.url)})`);
+	Deno.exit(0);
+}
 
 type command_line_options = {
 	reporttype?: string,
