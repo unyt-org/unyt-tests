@@ -2,7 +2,7 @@ import { Datex } from "unyt_core";
 
 @endpoint export class Assert {
 
-	@property static equals = Datex.Assertion.get(undefined, function (value1:any, value2:any){
+	@property static equals = Datex.Assertion.get(undefined, function (value1:any, value2:any) {
 		if (value1 == value2) return true;
 		return `${Datex.Runtime.valueToDatexString(value1)} does not equal ${Datex.Runtime.valueToDatexString(value2)}`;
 	}, false /* is sync function*/)
