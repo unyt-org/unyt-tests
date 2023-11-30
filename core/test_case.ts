@@ -2,7 +2,7 @@ import { sync, property, constructor, Datex } from "unyt_core";
 import { AssertionError, ESCAPE_SEQUENCES } from "unyt_core/datex_all.ts";
 import { logger } from "./utils.ts";
 import { getBoxWidth } from "./constants.ts";
-import { Path } from "unyt_node/path.ts";
+import { Path } from "uix/utils/path.ts";
 import { getCallerInfo } from "unyt_core/utils/caller_metadata.ts";
 import { TestManager } from "./test_manager.ts";
 import { fitText } from "./fitText.ts";

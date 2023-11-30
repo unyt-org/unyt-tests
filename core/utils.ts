@@ -1,7 +1,7 @@
 import { Datex } from "unyt_core";
 import { client_type, ESCAPE_SEQUENCES, Logger, LOG_FORMATTING } from 'unyt_core/datex_all.ts';
 import { getBoxWidth } from "./constants.ts";
-import { Path } from "unyt_node/path.ts";
+import { Path } from "uix/utils/path.ts";
 import { TestRunner } from "./test_runner.ts";
 import { VERSION } from "./version.ts";
 import { fitText } from "./fitText.ts";

@@ -4,7 +4,7 @@ import { TestManager } from "../core/test_manager.ts";
 
 // make sure assertions are loaded
 import "../testing/assertions.ts";
-import { Path } from "unyt_node/path.ts";
+import { Path } from "uix/utils/path.ts";
 
 /**
  * Runs cargo (rust) tests

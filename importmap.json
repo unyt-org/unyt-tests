@@ -4,11 +4,7 @@
 		"unyt_core/": "https://cdn.unyt.org/unyt_core/",
 		"uix": "https://cdn.unyt.org/uix/uix.ts",
 		"uix/": "https://cdn.unyt.org/uix/",
-		"unyt_tests/": "https://cdn.unyt.org/unyt_tests/",
-		"unyt_web/": "https://cdn.unyt.org/unyt_web/",
-
-		"unyt_node/server.ts": "https://cdn.unyt.org/unyt_node/server.ts",
-		"unyt_node/datex_server.ts": "https://cdn.unyt.org/unyt_node/datex_server.ts",
-		"unyt_node/ssh_relay.ts": "https://cdn.unyt.org/unyt_node/ssh_relay.ts"
+		"unyt-tests/": "https://cdn.unyt.org/unyt_tests/",
+		"unyt_web/": "https://cdn.unyt.org/unyt_web/"
 	}
 }

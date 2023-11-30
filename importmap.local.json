@@ -8,9 +8,8 @@
 		"unyt_core/": "https://dev.cdn.unyt.org/unyt_core/",
 		"uix/": "https://dev.cdn.unyt.org/uix/",
 		"uix_std/": "https://dev.cdn.unyt.org/uix/uix_std/",
-		"unyt_tests/": "./",
+		"unyt-tests/": "./",
 		"unyt_web/": "https://dev.cdn.unyt.org/unyt_web/",
-		"unyt_node/": "https://dev.cdn.unyt.org/unyt_node/",
 		"unyt_cli/": "https://dev.cdn.unyt.org/unyt_cli/",
 
 		"supranet/": 	"https://portal.unyt.org/ts_module_resolver/",

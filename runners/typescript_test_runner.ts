@@ -1,7 +1,7 @@
 import { TestRunner } from "../core/test_runner.ts";
 import { Datex } from "unyt_core";
 import { TestManager } from "../core/test_manager.ts";
-import { Path } from "unyt_node/path.ts";
+import { Path } from "uix/utils/path.ts";
 
 import { type DocNode, type ClassDef, type FunctionDef } from "https://deno.land/x/deno_doc@0.58.0/lib/types.d.ts";
 import { TestGroupOptions } from "../core/test_case.ts";

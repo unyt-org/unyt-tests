@@ -1,4 +1,4 @@
-import { Test, Assert } from "unyt_tests/testing/test.ts";
+import { Test, Assert } from "unyt-tests/testing/test.ts";
 
 @Test({
 	runConditions: {

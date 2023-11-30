@@ -1,4 +1,4 @@
-import { Path } from "unyt_node/path.ts";
+import { Path } from "uix/utils/path.ts";
 import { Datex } from "unyt_core";
 import { logger, getPath } from "./utils.ts";
 import { Class } from "unyt_core/datex_all.ts";

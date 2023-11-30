@@ -1,5 +1,5 @@
-import { Test, Assert } from "unyt_tests/testing/test.ts";
-import { testLogger } from "unyt_tests/core/logger.ts";
+import { Test, Assert } from "unyt-tests/testing/test.ts";
+import { testLogger } from "unyt-tests/core/logger.ts";
 
 @Test export class OtherTest {
 	
