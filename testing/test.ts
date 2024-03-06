@@ -8,7 +8,7 @@
  *   not sure about the order in the decorator proposal (but static methods before class decorator would make sense)
  */
 
-import { Datex, remote, scope, to } from "datex-core-legacy";
+import { Datex } from "datex-core-legacy";
 import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL, logger } from "datex-core-legacy/datex_all.ts";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.ts";
 import type { context_kind, context_meta_getter, context_meta_setter, context_name } from "./legacy_decorators.ts";
@@ -213,13 +213,13 @@ function _Timeout(value:any, name:context_name, kind:context_kind, _is_static:bo
 
 // interface TestManager in main process - ignored if isSameProcess == true
 if (isSameProcess) manager_out.add(Datex.LOCAL_ENDPOINT);
-@scope @to(manager_out) class TestManager {
+@endpoint(manager_out) class TestManager {
 
-    @remote static registerContext(context:URL|void):Promise<URL|void>{return Promise.resolve(undefined)}
-    @remote static contextLoaded(context:URL|void):Promise<URL|void>{return Promise.resolve(undefined)}
-    @remote static registerTestGroup(context:URL, group_name:string):Promise<void>{return Promise.resolve(undefined)}
-    @remote static registerTestCase(context:URL, group_name:string, test_name:string, params:any[][]):Promise<void>{return Promise.resolve(undefined)}
-    @remote static testGroupLoaded(context:URL, group_name:string):Promise<void>{return Promise.resolve(undefined)}
-    @remote static bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>):Promise<void>{return Promise.resolve(undefined)}
+    @property static registerContext(context:URL|void):Promise<URL|void>{return Promise.resolve(undefined)}
+    @property static contextLoaded(context:URL|void):Promise<URL|void>{return Promise.resolve(undefined)}
+    @property static registerTestGroup(context:URL, group_name:string):Promise<void>{return Promise.resolve(undefined)}
+    @property static registerTestCase(context:URL, group_name:string, test_name:string, params:any[][]):Promise<void>{return Promise.resolve(undefined)}
+    @property static testGroupLoaded(context:URL, group_name:string):Promise<void>{return Promise.resolve(undefined)}
+    @property static bindTestCase(context:URL, group_name:string, test_name:string, params:any[][], func:(...args: any) => void | Promise<void>):Promise<void>{return Promise.resolve(undefined)}
 
 }

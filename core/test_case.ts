@@ -152,7 +152,7 @@ const NOBOX = {
 		this.reset(params, func)
 		this.group = group;
 		// @ts-ignore
-		Datex.Value.observe(this.$.state, ()=>{
+		Datex.Ref.observe(this.$.state, ()=>{
 			TestManager.handleTestCaseStateChange(this);
 		})
 	}

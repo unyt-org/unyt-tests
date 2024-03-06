@@ -1,5 +1,5 @@
 import { parse } from "https://deno.land/std@0.165.0/flags/mod.ts"
-import { LOG_FORMATTING } from 'unyt_core/datex_all.ts';
+import { LOG_FORMATTING } from 'datex-core-legacy/datex_all.ts';
 import { logger } from './utils.ts';
 import { SUPPORTED_REPORT_TYPES } from './constants.ts';
 import { exitWithError } from './utils.ts';

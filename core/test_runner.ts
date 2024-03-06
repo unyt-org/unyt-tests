@@ -150,7 +150,7 @@ export namespace TestRunner {
 	
 	export function Config(options:testRunnerConfigOptions) {
 	
-		return function(target:Class<TestRunner>) {
+		return function(target:Class<TestRunner>, context: ClassDecoratorContext) {
 			const runnerData = {options, class:target}
 			runners.add(runnerData);
 

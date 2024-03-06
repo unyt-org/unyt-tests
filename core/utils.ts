@@ -1,5 +1,5 @@
 import { Datex } from "datex-core-legacy";
-import { client_type, ESCAPE_SEQUENCES, Logger, LOG_FORMATTING } from 'unyt_core/datex_all.ts';
+import { client_type, ESCAPE_SEQUENCES, Logger, LOG_FORMATTING } from 'datex-core-legacy/datex_all.ts';
 import { getBoxWidth } from "./constants.ts";
 import { Path } from "uix/utils/path.ts";
 import { TestRunner } from "./test_runner.ts";
