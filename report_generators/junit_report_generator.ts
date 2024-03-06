@@ -1,4 +1,4 @@
-import { Datex } from "unyt_core";
+import { Datex } from "datex-core-legacy";
 import { TestGroup } from "../core/test_case.ts";
 import { TestManager } from "../core/test_manager.ts";
 import { ReportGenerator } from "../core/report_generator.ts";

@@ -1,7 +1,7 @@
 import { Path } from "uix/utils/path.ts";
-import { Datex } from "unyt_core";
+import { Datex } from "datex-core-legacy";
 import { logger, getPath } from "./utils.ts";
-import { Class } from "unyt_core/datex_all.ts";
+import { Class } from "datex-core-legacy/datex_all.ts";
 import { TestManager } from "./test_manager.ts";
 import { TestGroup } from "./test_case.ts";
 

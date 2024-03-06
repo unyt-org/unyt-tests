@@ -1,4 +1,4 @@
-import { Datex, f } from "unyt_core/datex.ts";
+import { Datex, f } from "datex-core-legacy/datex.ts";
 import { init } from "./test.ts";
 
 // @ts-ignore worker context

@@ -1,4 +1,4 @@
-import { Datex } from "unyt_core";
+import { Datex } from "datex-core-legacy";
 
 @endpoint export class Assert {
 

@@ -8,8 +8,8 @@
  *   not sure about the order in the decorator proposal (but static methods before class decorator would make sense)
  */
 
-import { Datex, remote, scope, to } from "unyt_core";
-import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL, logger } from "unyt_core/datex_all.ts";
+import { Datex, remote, scope, to } from "datex-core-legacy";
+import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL, logger } from "datex-core-legacy/datex_all.ts";
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.ts";
 import type { context_kind, context_meta_getter, context_meta_setter, context_name } from "./legacy_decorators.ts";
 import { TestGroupOptions } from "../core/test_case.ts";

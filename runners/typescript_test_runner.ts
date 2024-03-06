@@ -1,5 +1,5 @@
 import { TestRunner } from "../core/test_runner.ts";
-import { Datex } from "unyt_core";
+import { Datex } from "datex-core-legacy";
 import { TestManager } from "../core/test_manager.ts";
 import { Path } from "uix/utils/path.ts";
 
@@ -7,7 +7,7 @@ import { type DocNode, type ClassDef, type FunctionDef } from "https://deno.land
 import { TestGroupOptions } from "../core/test_case.ts";
 import { METADATA } from "../testing/legacy_decorators.ts";
 import { DEFAULT_TIMEOUT, TEST_CASE_DATA, TEST_GROUP_DATA, TIMEOUT } from "../testing/test.ts";
-import { AssertionError } from "unyt_core/types/errors.ts";
+import { AssertionError } from "datex-core-legacy/types/errors.ts";
 const doc = globalThis.Deno ? (await import("https://deno.land/x/deno_doc@0.58.0/mod.ts")).doc : null;
 const json5 = globalThis.Deno ? await import("https://deno.land/x/json5@v1.0.0/mod.ts") : null;
 

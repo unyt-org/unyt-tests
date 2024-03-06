@@ -1,5 +1,5 @@
 import { TestRunner } from "../core/test_runner.ts";
-import { Datex } from "unyt_core";
+import { Datex } from "datex-core-legacy";
 import { TestManager } from "../core/test_manager.ts";
 
 // make sure assertions are loaded

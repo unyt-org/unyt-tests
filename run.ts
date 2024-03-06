@@ -1,4 +1,4 @@
-import "unyt_core";
+import "datex-core-legacy";
 import { Logger, LOG_LEVEL } from 'unyt_core/datex_all.ts';
 import { JUnitReportGenerator } from './report_generators/junit_report_generator.ts';
 import { getCommandLineOptions } from './core/command_line_args.ts';

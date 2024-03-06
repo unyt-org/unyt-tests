@@ -1,9 +1,9 @@
-import { sync, property, constructor, Datex } from "unyt_core";
-import { AssertionError, ESCAPE_SEQUENCES } from "unyt_core/datex_all.ts";
+import { sync, property, Datex } from "datex-core-legacy";
+import { AssertionError, ESCAPE_SEQUENCES } from "datex-core-legacy/datex_all.ts";
 import { logger } from "./utils.ts";
 import { getBoxWidth } from "./constants.ts";
 import { Path } from "uix/utils/path.ts";
-import { getCallerInfo } from "unyt_core/utils/caller_metadata.ts";
+import { getCallerInfo } from "datex-core-legacy/utils/caller_metadata.ts";
 import { TestManager } from "./test_manager.ts";
 import { fitText } from "./fitText.ts";
 
@@ -147,8 +147,7 @@ const NOBOX = {
 	}
 
 	// deno-lint-ignore no-unused-vars
-	constructor(name:string, params:any[][], func?:(...args:any)=>void|Promise<void>, group?:any) {}
-	@constructor construct(name:string, params:any[][], func?:(...args:any)=>void|Promise<void>, group?:any) {
+	construct(name:string, params:any[][], func?:(...args:any)=>void|Promise<void>, group?:any) {
 		this.name = name;
 		this.reset(params, func)
 		this.group = group;
@@ -238,8 +237,7 @@ export interface TestGroupOptions {
 	}
 
 
-	constructor(name:string, context:URL, endpoint?:Datex.Endpoint, options?: TestGroupOptions){}
-	@constructor construct(name:string, context:URL, endpoint?:Datex.Endpoint, options?: TestGroupOptions){
+	construct(name:string, context:URL, endpoint?:Datex.Endpoint, options?: TestGroupOptions){
 		this.name = name;
 		this.context = context;
 		this.endpoint = endpoint;

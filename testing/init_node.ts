@@ -1,5 +1,5 @@
-import { Datex, f } from "unyt_core/datex.ts";
-import { endpoint_name } from "unyt_core/datex_all.ts";
+import { Datex, f } from "datex-core-legacy/datex.ts";
+import { endpoint_name } from "datex-core-legacy/datex_all.ts";
 import { init } from "./test.ts";
 
 declare const process: any;
