@@ -10,11 +10,9 @@
 
 import { Datex } from "datex-core-legacy";
 import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL, logger } from "datex-core-legacy/datex_all.ts";
-import { handleDecoratorArgs, METADATA } from "./legacy_decorators.ts";
-import type { context_kind, context_meta_getter, context_meta_setter, context_name } from "./legacy_decorators.ts";
 import { TestGroupOptions } from "../core/test_case.ts";
-import { handleClassDecoratorWithOptionalArgs } from "datex-core-legacy/mod.ts";
-import { Decorators } from "datex-core-legacy/js_adapter/js_class_adapter.ts";
+import { handleClassDecoratorWithOptionalArgs, handleClassMethodDecoratorWithArgs } from "datex-core-legacy/mod.ts";
+import { Decorators, METADATA } from "datex-core-legacy/js_adapter/js_class_adapter.ts";
 
 export * from "./assertions.ts";
 
@@ -122,23 +120,16 @@ async function registerTests(group_name:string, value:Function){
 }
 
 
-
-
-
 export const TEST_GROUP_DATA = Symbol("test_group_data");
 export const TEST_CASE_DATA = Symbol("test_case");
 export const TIMEOUT = Symbol("timeout");
 export const DEFAULT_TIMEOUT = 60; // 60s
 
-type decorator_target = {[key: string]: any} & Partial<Record<keyof Array<any>, never>>;
-
-
-// @Test (legacy decorators support)
 export function Test(name:string): (value: Function, context: ClassDecoratorContext|ClassMethodDecoratorContext) => void
 export function Test(options: TestGroupOptions): (value: Function, context: ClassDecoratorContext) => void
 export function Test(name:string, options: TestGroupOptions): (value: Function, context: ClassDecoratorContext) => void
 
-export function Test(test_parameters:(unknown|unknown[])[]): (value: Function, context: ClassMethodDecoratorContext) => void
+export function Test<F extends (...args: any) => any>(test_parameters:(Parameters<F>|(Parameters<F>['length'] extends 1 ? Parameters<F>[0] : never))[]): (value: F, context: ClassMethodDecoratorContext) => void
 export function Test(name:string, test_parameters:(unknown|unknown[])[]): (value: Function, context: ClassMethodDecoratorContext) => void
 // export function Test(name:string, test_parameters:(unknown|unknown[])[], options:TestGroupOptions):any
 
@@ -195,25 +186,16 @@ function _Test(value:any, context:ClassDecoratorContext|ClassMethodDecoratorCont
 }
 
 
-// @Timeout (legacy decorators support) - DEFAULT Timeout is 60s, MAX depends on test manager timeout, currently 10min
-export function Timeout(seconds:number):any
-export function Timeout(target: Function):any
-export function Timeout(target: Function, options:any):any
-export function Timeout(...args:any[]) {return handleDecoratorArgs(args, <any>_Timeout)}
-
-function _Timeout(value:any, name:context_name, kind:context_kind, _is_static:boolean, _is_private:boolean, setMetadata:context_meta_setter, getMetadata:context_meta_getter, params:[number]) {
-
-   if (kind == 'method') {
-        if (!params || typeof params[0] != "number")  throw new Error("The @Timeout requires a timeout value (in seconds) as a parameter"); 
-        
-        const test_name = name;
-        setMetadata(TIMEOUT, params[0]);
-    }
-
-    else {
-        throw new Error("The @Timeout decorator can only be used on test case methods");
-    }
-
+/**
+ * Set a custom timeout for a test case (default is 60s, max depends on test manager timeout, currently 10min)
+ * @param seconds timeout in seconds
+ * @returns 
+ */
+export function Timeout(seconds: number) {
+    return handleClassMethodDecoratorWithArgs([seconds], ([seconds], value, context) => {
+        if (typeof seconds !== "number")  throw new Error("The @Timeout decorator requires a timeout value (in seconds) as a parameter"); 
+        Decorators.setMetadata(context, TIMEOUT, seconds);   
+    })
 }
 
 // interface TestManager in main process - ignored if isSameProcess == true

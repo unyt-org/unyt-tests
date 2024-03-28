@@ -134,7 +134,7 @@ export function printHeaderInfo(files:URL[]){
 
 	logger.plain `${main_color}╔═ [[ unyt tests ]]#reset ${VERSION}${main_color}${' '.padEnd(getBoxWidth()-17-VERSION.length, '═')}╗
 ${main_color}║${' '.repeat(getBoxWidth()-2)}║
-${main_color}║  #color(white)Test Files:${' '.repeat(getBoxWidth()-15)}${main_color}║`
+${main_color}║  #color(white)${files.length?'Test Files:' : 'No test files found'}${' '.repeat(getBoxWidth()-(files.length?15:23))}${main_color}║`
 
 	for (const file of files) {
 		logger.plain `${main_color}║     #color(grey)${file.toString().replace("file://","").padEnd(getBoxWidth()-7, ' ')}${main_color}║`
@@ -142,7 +142,7 @@ ${main_color}║  #color(white)Test Files:${' '.repeat(getBoxWidth()-15)}${main_
 
 	logger.plain `${main_color}║${' '.repeat(getBoxWidth()-2)}${main_color}║`
 
-	logger.plain `${main_color}║  #color(white)Endpoint: #color(grey)${Datex.Runtime.endpoint.toString().padEnd(getBoxWidth()-14, ' ')}${main_color}║`
+	if (files.length) logger.plain `${main_color}║  #color(white)Endpoint: #color(grey)${Datex.Runtime.endpoint.toString().padEnd(getBoxWidth()-14, ' ')}${main_color}║`
 
 	logger.plain `${main_color}║${' '.repeat(getBoxWidth()-2)}║`
 	logger.plain `${main_color}╚${'═'.repeat(getBoxWidth()-2)}╝`

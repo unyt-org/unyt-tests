@@ -3,7 +3,6 @@ import { AssertionError, ESCAPE_SEQUENCES } from "datex-core-legacy/datex_all.ts
 import { logger } from "./utils.ts";
 import { getBoxWidth } from "./constants.ts";
 import { Path } from "datex-core-legacy/utils/path.ts";
-import { getCallerInfo } from "datex-core-legacy/utils/caller_metadata.ts";
 import { TestManager } from "./test_manager.ts";
 import { fitText } from "./fitText.ts";
 
@@ -203,6 +202,23 @@ export interface TestGroupOptions {
 		else return TEST_CASE_STATE.SUCCESSFUL;
 	}
 
+	// TODO: fix, getState works but .state does not (when printing short report)
+	@property getState() {
+		let has_failed = false,
+			has_running = false,
+			has_initialized = false;
+
+		for (const test of this.test_cases.values()) {
+			if (test.state == TEST_CASE_STATE.FAILED) has_failed = true;
+			else if (test.state == TEST_CASE_STATE.RUNNING) has_running = true;
+			else if (test.state == TEST_CASE_STATE.INITIALIZED) has_initialized = true;
+		}
+
+		if (has_initialized) return TEST_CASE_STATE.INITIALIZED;
+		else if (has_running) return TEST_CASE_STATE.RUNNING;
+		else if (has_failed) return TEST_CASE_STATE.FAILED;
+		else return TEST_CASE_STATE.SUCCESSFUL;
+	}
 
 	get duration() {
 		let duration = 0;
@@ -362,17 +378,18 @@ export interface TestGroupOptions {
 		_logger.flush();
 	}
 
-	printReportShort(_logger = logger) {
+	async printReportShort(_logger = logger) {
 
 		const fileName = new Path(this.context).name;
 		const groupTitleLength = getBoxWidth() - fileName.length;
 
+		const ownState = await this.getState();
 
 		_logger.lock();
 
-		if (this.state  == TEST_CASE_STATE.SUCCESSFUL) 
+		if (ownState == TEST_CASE_STATE.SUCCESSFUL) 
 			_logger.plain `[[#bold#color(green) PASS ]]#bold#color(green) ${(this.formatted_name.padEnd(groupTitleLength - 10, " "))} #reset#color(grey)(${fileName})#reset`
-		else if (this.state  == TEST_CASE_STATE.FAILED) {
+		else if (ownState  == TEST_CASE_STATE.FAILED) {
 			_logger.plain `[[#bold#color(red) FAIL ]]#bold#color(red) ${(this.formatted_name.padEnd(groupTitleLength - 10, " "))} #reset#color(grey)(${fileName})#reset`
 
 			// test cases
@@ -399,7 +416,7 @@ export interface TestGroupOptions {
 			}
 		}
 
-		else if (this.state == TEST_CASE_STATE.RUNNING)  _logger.plain  `[[#bold#color(cyan) RUNNING ]]#bold#color(cyan) ${(this.formatted_name.padEnd(groupTitleLength - 13, " "))} #reset#color(grey)(${fileName})#reset`
+		else if (ownState == TEST_CASE_STATE.RUNNING)  _logger.plain  `[[#bold#color(cyan) RUNNING ]]#bold#color(cyan) ${(this.formatted_name.padEnd(groupTitleLength - 13, " "))} #reset#color(grey)(${fileName})#reset`
 		else _logger.plain  `[[#bold#color(cyan) INITIALIZED ]]#bold#color(cyan) ${(this.formatted_name.padEnd(groupTitleLength - 17, " "))} #reset#color(grey)(${fileName})#reset`
 
 
