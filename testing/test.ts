@@ -146,7 +146,6 @@ export function Test(name:string, test_parameters:(unknown|unknown[])[]): (value
 export function Test(value: Function, context: ClassDecoratorContext|ClassMethodDecoratorContext): void
 export function Test(value:Function, context: ClassDecoratorContext|ClassMethodDecoratorContext) {
     return handleClassDecoratorWithOptionalArgs([value, context], value as any, context as any, (args: any[], value, context: ClassDecoratorContext|ClassMethodDecoratorContext) => {
-        console.log("test", args, value, context)
         return _Test(value, context, args)
     }) as any;
 }
