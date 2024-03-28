@@ -300,8 +300,8 @@ export interface TestGroupOptions {
 
 
 	printReport(short = false, logger?:Datex.Logger){
-		if (short) this.printReportShort(logger)
-		else this.printReportLong(logger)
+		if (short) return this.printReportShort(logger)
+		else return this.printReportLong(logger)
 	}
 	
 

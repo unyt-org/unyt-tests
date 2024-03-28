@@ -112,8 +112,8 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
 
 
     // print all reports for all groups of the contexts and exit with status code
-    static printReportAndExit(contexts:URL[] = this.loadedContexts, short = false) {
-        const successful = this.printReport(contexts, short);
+    static async printReportAndExit(contexts:URL[] = this.loadedContexts, short = false) {
+        const successful = await this.printReport(contexts, short);
         testLogger.flush()
         if (globalThis.Deno) {
             if (successful) Deno.exit()
@@ -122,13 +122,13 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
     }
 
     // print all reports for all groups of the contexts
-    static printReport(contexts:URL[] = this.loadedContexts, short = false, logger?:Datex.Logger) {
+    static async printReport(contexts:URL[] = this.loadedContexts, short = false, logger?:Datex.Logger) {
         if (short) console.log(""); // margin top
 
         let successful = true;
         for (const context of contexts) {
             for (const group of this.tests.get(context.toString())?.values()??[]) {
-                group.printReport(short, logger);
+                await group.printReport(short, logger);
                 if (group.state != TEST_CASE_STATE.SUCCESSFUL) successful = false;
             }
         }

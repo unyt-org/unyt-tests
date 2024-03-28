@@ -91,10 +91,10 @@ function exportReportFile() {
   
 
 
-function updateContent() {
+async function updateContent() {
 	logger.clear(true);
 	printHeaderInfo(TestManager.loadedContexts);
-	TestManager.printReport(TestManager.loadedContexts, options.short);
+	await TestManager.printReport(TestManager.loadedContexts, options.short);
 
 	(testLogger as any).render();
 }
