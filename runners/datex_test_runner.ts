@@ -4,7 +4,7 @@ import { TestManager } from "../core/test_manager.ts";
 
 // make sure assertions are loaded
 import "../testing/assertions.ts";
-import { Path } from "uix/utils/path.ts";
+import { Path } from "datex-core-legacy/utils/path.ts";
 
 /**
  * Runs DATEX Script tests

@@ -17,8 +17,8 @@ Currently supported languages:
 Example
 ```typescript
 
-import { Assert } from "unyt_tests/testing/assertions.ts";
-import { Test, Timeout } from "unyt_tests/testing/test.ts"
+import { Assert } from "unyt-tests/testing/assertions.ts";
+import { Test, Timeout } from "unyt-tests/testing/test.ts"
 
 @Test export class DatexJSONObjects {
 
@@ -49,22 +49,22 @@ import { Test, Timeout } from "unyt_tests/testing/test.ts"
 
 ### Automatically detect tests in current working directory:
 ```bash
-deno run -A --import-map http://dev.cdn.unyt.org/importmap.json https://dev.cdn.unyt.org/unyt_tests/run.ts -w
+deno run -A --import-map http://cdn.unyt.org/importmap.json https://cdn.unyt.org/unyt-tests/run.ts -w
 ```
  
 With the `-w` flag, the tests are run in watch mode - when you update a test file, the tests are automatically reevaluated.
 
-As a default import map, `https://dev.cdn.unyt.org/importmap.json` can be used, but you can also use a different import map.
+As a default import map, `https://cdn.unyt.org/importmap.json` can be used, but you can also use a different import map.
 
 ### Specifying test files
 ```bash
-deno run -Aq --import-map [IMPORT_MAP] https://dev.cdn.unyt.org/unyt_tests/run.ts -w testA.ts testB.js testC.js testD.dx
+deno run -Aq --import-map [IMPORT_MAP] https://cdn.unyt.org/unyt-tests/run.ts -w testA.ts testB.js testC.js testD.dx
 ```
 
 ### Options
 See <RUN.md> or run 
 ```bash
-deno run -Aq --import-map [IMPORT_MAP] https://dev.cdn.unyt.org/unyt_tests/run.ts -h
+deno run -Aq --import-map [IMPORT_MAP] https://cdn.unyt.org/unyt-tests/run.ts -h
 ```
  * `--color` or `-c`: Set the color mode of the output ("rgb", "simple", or "none")
  * `--reporttype`: Set the type for the report file generation, currently supported types: "junit"
@@ -75,10 +75,10 @@ deno run -Aq --import-map [IMPORT_MAP] https://dev.cdn.unyt.org/unyt_tests/run.t
 
 ## Logging
 
-You can import the `testLogger` from `unyt_tests/core/logger.ts` to show logs in the console even in watch mode.
+You can import the `testLogger` from `unyt-tests/core/logger.ts` to show logs in the console even in watch mode.
 
 ```ts
-import { testLogger } from "unyt_tests/core/logger.ts";
+import { testLogger } from "unyt-tests/core/logger.ts";
 
 @Test export class MyTests {
 	@Test firstTest() {

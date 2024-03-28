@@ -1,7 +1,7 @@
 import { Datex } from "datex-core-legacy";
 import { client_type, ESCAPE_SEQUENCES, Logger, LOG_FORMATTING } from 'datex-core-legacy/datex_all.ts';
 import { getBoxWidth } from "./constants.ts";
-import { Path } from "uix/utils/path.ts";
+import { Path } from "datex-core-legacy/utils/path.ts";
 import { TestRunner } from "./test_runner.ts";
 import { VERSION } from "./version.ts";
 import { fitText } from "./fitText.ts";

@@ -1,4 +1,4 @@
-import { Path } from "uix/utils/path.ts";
+import { Path } from "datex-core-legacy/utils/path.ts";
 import { Datex } from "datex-core-legacy";
 import { logger, getPath } from "./utils.ts";
 import { Class } from "datex-core-legacy/datex_all.ts";
@@ -84,7 +84,7 @@ export abstract class TestRunner {
 				return;
 			}
 		} catch (e)  {
-			logger.error("Error starting test environment:" + (e?.message??e))
+			logger.error("Error starting test environment: " + (e?.message??e))
 			if (globalThis.Deno) Deno.exit(1);
 			else throw "Error starting test environment"
 		}

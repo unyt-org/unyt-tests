@@ -1,7 +1,7 @@
 import { TestRunner } from "../core/test_runner.ts";
 import { Datex } from "datex-core-legacy";
 import { TestManager } from "../core/test_manager.ts";
-import { Path } from "uix/utils/path.ts";
+import { Path } from "datex-core-legacy/utils/path.ts";
 
 import { type DocNode, type ClassDef, type FunctionDef } from "https://deno.land/x/deno_doc@0.58.0/lib/types.d.ts";
 import { TestGroupOptions } from "../core/test_case.ts";
@@ -202,12 +202,12 @@ export class TypescriptTestRunner extends TestRunner {
 
 					if (k == "constructor") continue;
 					// @ts-ignore
-					const test_case_data = <[test_name:string, params:any[][], options:TestGroupOptions,  value:(...args: any) => void | Promise<void>]>value.prototype[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
+					const test_case_data = <[test_name:string, params:any[][], options:TestGroupOptions,  value:(...args: any) => void | Promise<void>]>value[METADATA]?.[TEST_CASE_DATA]?.public?.[k];
 			
 					// @ts-ignore handle constructor
 					if (test_case_data == Object) continue;
 			
-					const timeout = value.prototype[METADATA]?.[TIMEOUT]?.public?.[k] ?? DEFAULT_TIMEOUT;
+					const timeout = (value as any)[METADATA]?.[TIMEOUT]?.public?.[k] ?? DEFAULT_TIMEOUT;
 					if (test_case_data) {
 						
 						await TestManager.bindTestCase(

@@ -13,6 +13,8 @@ import { AssertionError, Disjunction, Endpoint, Logger, LOG_LEVEL, logger } from
 import { handleDecoratorArgs, METADATA } from "./legacy_decorators.ts";
 import type { context_kind, context_meta_getter, context_meta_setter, context_name } from "./legacy_decorators.ts";
 import { TestGroupOptions } from "../core/test_case.ts";
+import { handleClassDecoratorWithOptionalArgs } from "datex-core-legacy/mod.ts";
+import { Decorators } from "datex-core-legacy/js_adapter/js_class_adapter.ts";
 
 export * from "./assertions.ts";
 
@@ -132,18 +134,22 @@ type decorator_target = {[key: string]: any} & Partial<Record<keyof Array<any>, 
 
 
 // @Test (legacy decorators support)
-export function Test(name:string):any
-export function Test(options:TestGroupOptions):any
-export function Test(name:string, options:TestGroupOptions):any
+export function Test(name:string): (value: Function, context: ClassDecoratorContext|ClassMethodDecoratorContext) => void
+export function Test(options: TestGroupOptions): (value: Function, context: ClassDecoratorContext) => void
+export function Test(name:string, options: TestGroupOptions): (value: Function, context: ClassDecoratorContext) => void
 
-export function Test(test_parameters:(unknown|unknown[])[]):any
-export function Test(name:string, test_parameters:(unknown|unknown[])[]):any
+export function Test(test_parameters:(unknown|unknown[])[]): (value: Function, context: ClassMethodDecoratorContext) => void
+export function Test(name:string, test_parameters:(unknown|unknown[])[]): (value: Function, context: ClassMethodDecoratorContext) => void
 // export function Test(name:string, test_parameters:(unknown|unknown[])[], options:TestGroupOptions):any
 
 // export function Test(...test_paramters:any[]):any
-export function Test(target: any, name?: string, method?:any):any
-export function Test(target: Function, options:any):any
-export function Test(...args:any[]) {return handleDecoratorArgs(args, _Test)}
+export function Test(value: Function, context: ClassDecoratorContext|ClassMethodDecoratorContext): void
+export function Test(value:Function, context: ClassDecoratorContext|ClassMethodDecoratorContext) {
+    return handleClassDecoratorWithOptionalArgs([value, context], value as any, context as any, (args: any[], value, context: ClassDecoratorContext|ClassMethodDecoratorContext) => {
+        console.log("test", args, value, context)
+        return _Test(value, context, args)
+    }) as any;
+}
 
 // @ts-ignore global Test
 // globalThis.Test = Test;
@@ -152,7 +158,7 @@ export function Test(...args:any[]) {return handleDecoratorArgs(args, _Test)}
 //     const Test: typeof GlobalTest
 // }
 
-function _Test(value:any, name:context_name, kind:context_kind, _is_static:boolean, _is_private:boolean, setMetadata:context_meta_setter, getMetadata:context_meta_getter, params:[string?]|any[][] = []) {
+function _Test(value:any, context:ClassDecoratorContext|ClassMethodDecoratorContext, params:[string?]|any[][] = []) {
 
     // options
     let options: TestGroupOptions|undefined;
@@ -161,19 +167,19 @@ function _Test(value:any, name:context_name, kind:context_kind, _is_static:boole
     else if (typeof params[2] == "object" && !(params[2] instanceof Array)) options = params[2]
 
     // name
-    const test_name = typeof params[0] == "string" ? params[0] : ((<string>name)?.replace(/[0-9]$/, ''))
+    const test_name = typeof params[0] == "string" ? params[0] : ((<string>context.name)?.replace(/[0-9]$/, ''))
     
-    if (kind == 'class') {
+    if (context.kind == 'class') {
         // workaround: deno compiler sometimes adds random numbers to function names
-        const group_name = (<string> test_name);;
+        const group_name = (<string> test_name);
 
-        setMetadata(TEST_GROUP_DATA, [group_name, options]);
+        Decorators.setMetadata(context, TEST_GROUP_DATA, [group_name, options])
 
         // handle tests via DATEX, if not in same process
         if (!isSameProcess) registerTests(group_name, value);
     }
 
-    else if (kind == 'method') {
+    else if (context.kind == 'method') {
 
         // params
         let parameters: any[] = [];
@@ -184,7 +190,7 @@ function _Test(value:any, name:context_name, kind:context_kind, _is_static:boole
             if (!(parameters[i] instanceof Array)) parameters[i] = [parameters[i]] 
         }
                 
-        setMetadata(TEST_CASE_DATA, [test_name, parameters, options, value]);
+        Decorators.setMetadata(context, TEST_CASE_DATA, [test_name, parameters, options, value]);
     }
 
 }

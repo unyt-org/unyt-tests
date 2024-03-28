@@ -2,7 +2,7 @@ import { sync, property, Datex } from "datex-core-legacy";
 import { AssertionError, ESCAPE_SEQUENCES } from "datex-core-legacy/datex_all.ts";
 import { logger } from "./utils.ts";
 import { getBoxWidth } from "./constants.ts";
-import { Path } from "uix/utils/path.ts";
+import { Path } from "datex-core-legacy/utils/path.ts";
 import { getCallerInfo } from "datex-core-legacy/utils/caller_metadata.ts";
 import { TestManager } from "./test_manager.ts";
 import { fitText } from "./fitText.ts";
