@@ -299,7 +299,7 @@ export interface TestGroupOptions {
 	}
 
 
-	printReport(short = false, logger?:Datex.Logger){
+	printReport(short = false, logger?:Datex.Logger) {
 		if (short) return this.printReportShort(logger)
 		else return this.printReportLong(logger)
 	}
@@ -376,6 +376,8 @@ export interface TestGroupOptions {
 		}
 
 		_logger.flush();
+
+		return this.state  == TEST_CASE_STATE.SUCCESSFUL;
 	}
 
 	async printReportShort(_logger = logger) {
@@ -421,6 +423,8 @@ export interface TestGroupOptions {
 
 
 		_logger.flush();
+
+		return ownState == TEST_CASE_STATE.SUCCESSFUL
 	}
 
 	private formatError(error:any) {

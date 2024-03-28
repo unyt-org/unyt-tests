@@ -128,8 +128,8 @@ Logger.production_log_level = LOG_LEVEL.DEFAULT; // log level for normal logs (l
         let successful = true;
         for (const context of contexts) {
             for (const group of this.tests.get(context.toString())?.values()??[]) {
-                await group.printReport(short, logger);
-                if (group.state != TEST_CASE_STATE.SUCCESSFUL) successful = false;
+                const groupSuccessful = await group.printReport(short, logger);
+                if (!groupSuccessful) successful = false;
             }
         }
         if (short) console.log(""); // margin top
